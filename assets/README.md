@@ -1,9 +1,10 @@
 # Herní grafika
 
-`title-screen.png` je původní úvodní obrazovka FLAPPY2k, dekódovaná z pásky
-v rozlišení 288 × 256 pixelů. Zobrazuje se po otevření hry. Kliknutí, klepnutí
-nebo mezerník spustí místnost; do té doby hra i časomíra stojí.
-Obnovení obrázku: `node tools/extract-title.mjs cesta/flappy2k.ptp`.
+`title-screen.png` je původní úvodní obrazovka Flappy od VBG Software (1987),
+stažená beze změn ze [souboru Vbg_flappy_3.png na PMD 85 Infoserveru](https://pmd85.borik.net/w/images/b/bc/Vbg_flappy_3.png).
+Má rozlišení 288 × 256 pixelů. Zobrazuje se po otevření hry; výzva ke spuštění
+je pod obrázkem, aby nezakrývala jeho kresbu ani autorské údaje.
+Kliknutí, klepnutí nebo mezerník spustí místnost; do té doby hra i časomíra stojí.
 
 Grafika je uložená v `game-data.js` jako pole čísel `sprites`, nikoli jako jednotlivé PNG.
 Každý bajt obsahuje šest vodorovných pixelů, od nejnižšího bitu doleva doprava.

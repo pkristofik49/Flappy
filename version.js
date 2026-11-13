@@ -1,1 +1,1 @@
-globalThis.FLAPPY_VERSION = "1.012";
+globalThis.FLAPPY_VERSION = "1.013";

@@ -38,10 +38,11 @@ Rozdrcení nepřátelé používají původní zploštělé bitmapy 12 × 8 pixe
 duch na adrese `0x2731`, žába `0x2952` v paměťovém obrazu FLAPPY2k.
 Zůstávají viditelní 600 ms herního času; padající předmět po jejich zmizení
 pokračuje dolů. Jde o novou implementaci časování, nikoli emulaci originálu.
-Úvodní obrazovka `assets/title-screen.png` pochází rovněž z pásky FLAPPY2k.
-Je dekódována přímo z obrazového bloku, bez emulace nebo úprav kresby, a
-uložena v černobílém rozlišení PMD 288 × 256. Obnoví ji příkaz
-`node tools/extract-title.mjs cesta/flappy2k.ptp`.
+Úvodní obrazovka `assets/title-screen.png` je z původního Flappy od VBG Software
+(1987), podle výslovného výběru uživatele. Jde o beze změn uložený obrázek
+[Vbg_flappy_3.png z PMD 85 Infoserveru](https://pmd85.borik.net/w/images/b/bc/Vbg_flappy_3.png)
+v rozlišení 288 × 256 pixelů. SHA256 PNG:
+`338fec4330284911c478b7499b1fe0a4fcd95f66593dbac3950452632b6f9439`.
 
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.
