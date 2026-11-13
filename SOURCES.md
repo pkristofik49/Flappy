@@ -23,6 +23,9 @@ tento projekt nedává původním herním datům novou licenci.
 Herní mechanismy jsou nově implementovány: nejde o emulaci instrukcí PMD 85.
 Rychlost, AI nepřátel, střelba a okrajové kolize se mohou od originálu lišit.
 Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mřížce.
+Cílové vejce má zachovaný původní obrys, ale plnou bílou výplň, aby se v
+černobílém zobrazení jasně odlišilo od tečkovaných běžných kamenů. Bitmapy
+vejce a kamene v remasteru jsou stejné; samotný barevný rozdíl se do ČB nepřenáší.
 
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.
