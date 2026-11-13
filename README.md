@@ -22,6 +22,7 @@ ani service worker.
 
 ## Hraní
 
+- Úvodní obrazovka z původní pásky: klikni, klepni nebo stiskni mezerník pro spuštění hry.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.

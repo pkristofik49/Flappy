@@ -34,6 +34,10 @@ je v `assets/README.md`, obrazový náhled v `assets/sprites.png`.
 Žába používá osm původních bitmap: klidový postoj a fázi skoku pro každý ze
 čtyř směrů. Rozšířené skokové snímky se vykreslují v původní velikosti
 12 × 24 nebo 18 × 16 pixelů; kolizní rozměry zůstávají stejné.
+Úvodní obrazovka `assets/title-screen.png` pochází rovněž z pásky FLAPPY2k.
+Je dekódována přímo z obrazového bloku, bez emulace nebo úprav kresby, a
+uložena v černobílém rozlišení PMD 288 × 256. Obnoví ji příkaz
+`node tools/extract-title.mjs cesta/flappy2k.ptp`.
 
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.

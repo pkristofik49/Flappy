@@ -34,7 +34,9 @@ createApp({setup(){
   function release(){clearInterval(holdTimer);holdTimer=null}
   const directions={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],KeyW:[0,-1],KeyS:[0,1],KeyA:[-1,0],KeyD:[1,0]};
   function keydown(e){
-    if(['SELECT','INPUT','TEXTAREA','BUTTON'].includes(e.target.tagName))return;
+    if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName))return;
+    if(mode.value==='ready'&&(e.code==='Space'||e.code==='Enter')){e.preventDefault();if(!e.repeat)start();return}
+    if(e.target.tagName==='BUTTON')return;
     if(directions[e.code]){e.preventDefault();if(!e.repeat){held={code:e.code,dir:directions[e.code],at:performance.now()+160};move(...held.dir)}return}
     if(e.code==='Space'){e.preventDefault();if(!e.repeat)fire()}
     if(e.repeat)return;

@@ -22,12 +22,15 @@
       <div class="game-layout">
         <section class="machine" aria-label="Hra Flappy">
           <div class="machine-top"><span><i></i> TESLA PMD 85</span><span>LOGICKÁ HRA / 01</span></div>
-          <div class="screen-wrap">
+          <div class="screen-wrap" :class="{ 'show-title': mode === 'ready' }">
             <div class="game-hud"><span>SCÉNA <b>{{ String(scene).padStart(3, '0') }}</b></span><span class="lives" :aria-label="`${lives} životů`">{{ '♥'.repeat(lives) }}</span><span>ČAS <b>{{ timeText }}</b></span></div>
             <div class="viewport">
               <canvas ref="canvas" width="240" height="176" tabindex="0" aria-label="Herní plocha. Pohyb šipkami nebo WASD, mezerník vystřelí houbu, P pozastaví hru."></canvas>
-              <div v-if="mode !== 'playing'" class="overlay">
-                <template v-if="mode === 'ready'"><span class="overlay-kicker">VBG SOFTWARE · WEB EDITION</span><h2>FLAPPY</h2><p>Dostaň vejce na označené místo.</p><button class="primary" @click="start">Začít hrát <span>↵</span></button><small>ŠIPKY / WASD / DOTYK</small></template>
+              <button v-if="mode === 'ready'" class="title-screen" @click="start" aria-label="Spustit Flappy. Klikni nebo stiskni mezerník.">
+                <img src="./assets/title-screen.png" width="288" height="256" alt="Původní úvodní obrazovka FLAPPY2k pro PMD 85" fetchpriority="high" draggable="false">
+                <span class="title-prompt">KLIKNI NEBO STISKNI <kbd>MEZERNÍK</kbd></span>
+              </button>
+              <div v-if="mode !== 'playing' && mode !== 'ready'" class="overlay">
                 <template v-if="mode === 'paused'"><span class="overlay-kicker">CHVÍLE NA ROZMYŠLENOU</span><h2>PAUZA</h2><button class="primary" @click="resume">Pokračovat ↵</button></template>
                 <template v-if="mode === 'dead'"><span class="overlay-kicker">{{ lives ? 'KAŽDÝ POKUS SE POČÍTÁ' : 'KONEC HRY' }}</span><h2>{{ lives ? 'JEŠTĚ JEDNOU' : 'GAME OVER' }}</h2><p>{{ message }}</p><button class="primary" @click="retry">{{ lives ? 'Zkusit znovu' : 'Nová hra' }} ↵</button></template>
                 <template v-if="mode === 'won'"><span class="overlay-kicker">VEJCE JE DOMA</span><h2>VÝBORNĚ!</h2><p>Scéna {{ scene }} je vyřešená.{{ scene === 200 ? ' Dokončil jsi celou hru!' : '' }}</p><button class="primary" @click="next">{{ scene === 200 ? 'Znovu od začátku' : 'Další místnost' }} ↵</button></template>
