@@ -164,9 +164,6 @@ MSX a NES původní titulní snímky a PC novou kompozici s krtkem a krystalem.
 Nové historické režimy vykreslují mřížku do 320 × 200 pixelů. Jde o grafické
 varianty současných 200 sektorů; podrobnosti o převzatých a odvozených snímcích
 jsou v [SOURCES.md](SOURCES.md).
-Ovládání, průvodce a běžné texty používají jednotné systémové písmo Arial,
-převážně 15 px. Vedlejší popisky jsou 12–14 px a ovládací tlačítka mají výšku
-alespoň 40 px. Další fontové soubory ani knihovny nejsou potřeba.
 Žádná další knihovna není potřeba. Původ a přehled moderních spritů viz
 [assets/README.md](assets/README.md).
 
