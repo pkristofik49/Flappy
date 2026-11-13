@@ -49,19 +49,13 @@ export function enemySprite(enemy,ticks){
   return hopping?{data:pose.step,width:pose.width,height:pose.height,x:pose.x,y:pose.y,flip:false}
     :{data:pose.idle,width:2,height:16,x:0,y:0,flip:false};
 }
-// The remaster distinguishes these objects by colour, but their monochrome
-// bitmaps are identical. Keep the original outline and give the target egg
-// a solid white interior; ordinary stones retain their stippled texture.
-const targetEgg = sprites.egg.slice();
-for (let row = 0; row < 16; row++) {
-  const pixels = sprites.egg[row * 2] | (sprites.egg[row * 2 + 1] << 6);
-  if (!pixels) continue;
-  let first = 0, last = 11;
-  while (!(pixels & (1 << first))) first++;
-  while (!(pixels & (1 << last))) last--;
-  const solid = ((1 << (last - first + 1)) - 1) << first;
-  targetEgg[row * 2] = solid & 63;
-  targetEgg[row * 2 + 1] = (solid >> 6) & 63;
+// Angular faceted target crystal, distinct from the ordinary stippled boulder.
+const targetCrystal=[];
+for(let row=0;row<16;row++){
+  const edge=row<5?5-row:row>10?row-10:1;
+  let bits=((1<<(12-2*edge))-1)<<edge;
+  if(row>3&&row<12)bits&=~(1<<(4+Math.floor((row-4)/3)));
+  targetCrystal.push(bits&63,(bits>>6)&63);
 }
 export function bitmap(ctx,data,x,y,width=2,height=16,color='#eef0e5',flip=false){
   ctx.fillStyle=color;
@@ -101,12 +95,24 @@ function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translati
     const x=6+(i+(game.entry?1:0))*12;
     if(atlas)modernSprite(ctx,atlas,4,x,8,11,16);else bitmap(ctx,sprites.front,x,8,2,16,palette.player);
   }
-  pixelText(ctx,sectorLabel,78,8,palette.text);pixelText(ctx,String(scene).padStart(3,'0'),138,8,palette.text);
+  if(atlas){
+    ctx.fillStyle='#1b2b3b';ctx.beginPath();ctx.roundRect(74,7.5,86,16,.9);ctx.fill();
+    ctx.fillStyle='#79d5e8';ctx.fillRect(75,7.5,84,.35);
+    hudText(ctx,sectorLabel,78,8,5.1,'#9fbdcb');hudText(ctx,String(scene).padStart(3,'0'),156,7.8,7.2,palette.text,'right');
+  }else{pixelText(ctx,sectorLabel,78,8,palette.text);pixelText(ctx,String(scene).padStart(3,'0'),138,8,palette.text)}
   for(let i=0;i<game.ammo;i++){
     if(atlas)modernSprite(ctx,atlas,15,78+i*8,16,6,7);else bitmap(ctx,mushroomSprite,78+i*8,16,1,8,palette.mushroom);
   }
-  pixelText(ctx,timeLabel,174,8,palette.text);pixelText(ctx,timeText,210,8,palette.text);
-  pixelText(ctx,credit,174,16,palette.credit);
+  if(atlas){
+    hudText(ctx,timeLabel,171,8.4,4.5,'#9fbdcb');hudText(ctx,timeText,231,7.8,6.8,palette.text,'right');
+    hudText(ctx,credit,171,17,4.2,palette.credit);
+  }else{
+    pixelText(ctx,timeLabel,174,8,palette.text);pixelText(ctx,timeText,210,8,palette.text);
+    pixelText(ctx,credit,174,16,palette.credit);
+  }
+}
+function hudText(ctx,text,x,y,size,color,align='left'){
+  ctx.save();ctx.font=`600 ${size}px Arial, sans-serif`;ctx.textBaseline='top';ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(text,x,y);ctx.restore();
 }
 export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],hud,transition=null,graphics={}){
   const mode=graphics.mode==='modern'&&!graphics.atlas?'color':graphics.mode??'mono';
@@ -116,27 +122,31 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
   ctx.save();ctx.scale(scale,scale);
   ctx.imageSmoothingEnabled=Boolean(atlas);ctx.imageSmoothingQuality='high';ctx.fillStyle=palette.background;ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
   drawHud(ctx,game,hud,palette,atlas);
+  const visual=entity=>atlas&&graphics.motion?graphics.motion.position(entity):{...entity,moving:false,progress:1};
   ctx.save();ctx.translate(0,HUD_HEIGHT);
   // PMD's native character cell is 6 × 8 pixels.
   for(const cell of game.walls){const [x,y]=cell.split(',').map(Number);wall(ctx,x*6,y*8,palette,atlas)}
   if(game.goal){const{x,y}=game.goal;ctx.fillStyle=palette.goal;ctx.fillRect(x*6,y*8,12,8);ctx.fillStyle=palette.goalLine;for(let i=0;i<12;i+=2)ctx.fillRect(x*6+i,y*8,1,8)}
   for(const m of game.mushrooms){if(atlas)modernSprite(ctx,atlas,15,m.x*6,m.y*8,6,8);else bitmap(ctx,mushroomSprite,m.x*6,m.y*8,1,8,palette.mushroom)}
-  for(const r of game.rocks){if(atlas)modernSprite(ctx,atlas,r.egg?13:14,r.x*6,r.y*8,12,16);else bitmap(ctx,r.egg?targetEgg:sprites.rock,r.x*6,r.y*8,2,16,r.egg?palette.egg:palette.rock)}
+  for(const r of game.rocks){const position=visual(r);if(atlas)modernSprite(ctx,atlas,r.egg?13:14,position.x*6,position.y*8,12,16);else bitmap(ctx,r.egg?targetCrystal:sprites.rock,r.x*6,r.y*8,2,16,r.egg?palette.egg:palette.rock)}
   for(const e of [...game.enemies,...game.corpses]){
     const pose=enemySprite(e,game.ticks);
+    const position=visual(e);
     if(atlas){
-      const hopping=!e.sleep&&!e.crushed&&game.ticks-e.stepTick<2;
-      modernSprite(ctx,atlas,modernEnemyFrame(e),e.x*6,e.y*8+(e.crushed?4:hopping?-1:0),12,e.crushed?4:hopping?17:16,{flip:e.type!=='frog'&&e.dx>0,opacity:e.sleep ? .5 : 1});
+      const hop=position.moving&&!e.sleep&&!e.crushed&&e.type==='frog'?Math.sin(Math.PI*position.progress)*2:0;
+      const hover=!e.sleep&&!e.crushed&&e.type==='ghost'?Math.sin((graphics.motion?.time??0)/260)*.5:0;
+      modernSprite(ctx,atlas,modernEnemyFrame(e),position.x*6,position.y*8+(e.crushed?4:-hop+hover),12,e.crushed?4:16,{flip:e.type!=='frog'&&e.dx>0,opacity:e.sleep ? .5 : 1});
     }else bitmap(ctx,pose.data,e.x*6+pose.x,e.y*8+pose.y,pose.width,pose.height,e.sleep?palette.sleep:palette[e.type],pose.flip);
-    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText(sleepMarker,e.x*6+10,e.y*8+1)}
+    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font=atlas?'600 5px Arial, sans-serif':'6px monospace';ctx.fillText(sleepMarker,position.x*6+10,position.y*8+1)}
   }
   const p=game.player;
   const pose=playerPose(p);
+  const position=visual(p),step=position.moving&&!p.crushed?Math.sin(Math.PI*position.progress)*.45:0;
   if((!transition||transition.playerVisible)&&(game.state!=='dead'||graphics.showDeadPlayer!==false)){
-    if(atlas)modernSprite(ctx,atlas,modernPlayerFrame(p),p.x*6,p.y*8+pose.y,12,pose.height);
+    if(atlas)modernSprite(ctx,atlas,modernPlayerFrame(p),position.x*6,position.y*8+pose.y-step,12,pose.height);
     else bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height,palette.player);
   }
-  for(const s of game.shots){if(atlas)modernSprite(ctx,atlas,15,s.x*6,s.y*8,6,7);else bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8,palette.mushroom)}
+  for(const s of game.shots){const position=visual(s);if(atlas)modernSprite(ctx,atlas,15,position.x*6,position.y*8,6,7);else bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8,palette.mushroom)}
   if(transition)for(let i=transition.firstCoveredCell;i<transition.firstCoveredCell+transition.coveredCells;i++){
     const x=(i%40)*6,y=Math.floor(i/40)*8;
     ctx.fillStyle=palette.background;ctx.fillRect(x,y,6,8);

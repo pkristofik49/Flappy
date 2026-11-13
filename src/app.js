@@ -6,6 +6,7 @@ import {LANGUAGE_KEY,languages,loadLanguage,translate,plural as translatePlural}
 import {GameAudio,SOUND_KEY,loadSound} from './audio.js';
 import {LevelTransition} from './transition.js';
 import {GRAPHICS_KEY,graphicsModes,loadGraphics,loadModernSprites} from './graphics.js';
+import {Motion} from './motion.js';
 const STORAGE='flappy-pmd85-progress-v1';
 const DEATH_MS=720;
 function loadProgress(){try{const p=JSON.parse(localStorage.getItem(STORAGE));return {unlocked:Math.max(1,Math.min(200,Math.floor(Number(p?.unlocked)||1))),scene:Math.max(1,Math.min(200,Math.floor(Number(p?.scene)||1)))}}catch{return{unlocked:1,scene:1}}}
@@ -20,6 +21,7 @@ createApp({setup(){
   const languageMenuOpen=ref(false),languagePicker=ref(null),languageMenuButton=ref(null);
   const graphics=ref(loadGraphics()),graphicsMenuOpen=ref(false),graphicsPicker=ref(null),graphicsMenuButton=ref(null),graphicsReady=ref(false);
   let modernAtlas=null;
+  const motion=new Motion();
   const expanded=ref(false),expandedWidth=ref(760);
   const audioAvailable=Boolean(window.AudioContext||window.webkitAudioContext);
   const audio=new GameAudio();audio.setEnabled(sound.value);
@@ -109,8 +111,8 @@ createApp({setup(){
     paint();
   },{immediate:true});
   function save(savedScene=scene.value){try{localStorage.setItem(STORAGE,JSON.stringify({scene:savedScene,unlocked:unlocked.value}))}catch{notice.value='notice.storage'}}
-  function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
-  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,showDeadPlayer:!deathReady.value})}
+  function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});motion.reset(game);remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
+  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
   function focus(){canvas.value?.focus({preventScroll:true})}
   function start(){transition=null;transitionPhase.value='';notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
   function resume(){mode.value=pausedFrom;held=null;last=performance.now();focus()}
@@ -137,6 +139,7 @@ createApp({setup(){
       unlocked.value=Math.max(unlocked.value,Math.min(200,scene.value+1));save(Math.min(200,scene.value+1));held=null;release();
     }
     if(game.state==='dead'&&mode.value==='playing'){lives.value=Math.max(0,lives.value-1);message.value=game.reason;notice.value=game.reason;mode.value='dead';deathElapsed=0;deathReady.value=false;held=null;release();beep('dead')}
+    motion.capture(game);
     paint();
   }
   function move(dx,dy){if(mode.value!=='playing')return;game.move(dx,dy);sync()}
@@ -174,6 +177,7 @@ createApp({setup(){
   async function install(){const prompt=installPrompt.value;if(!prompt)return;await prompt.prompt();await prompt.userChoice;installPrompt.value=null}
   function frame(){
     const now=performance.now(),delta=Math.min(now-last,250);
+    if(['playing','entering','transition'].includes(mode.value))motion.advance(delta);
     if(mode.value==='dead'&&!deathReady.value&&!document.hidden){
       deathElapsed+=delta;
       if(deathElapsed>=DEATH_MS){deathReady.value=true;if(lives.value>0)start();else paint()}
@@ -195,6 +199,7 @@ createApp({setup(){
         elapsed-=120;game.tick();remaining.value=Math.max(0,360-Math.floor(game.ticks*.12));sync();
       }
       if(!remaining.value&&mode.value==='playing'){game.die('death.timeout');sync()}
+      if(graphics.value==='modern')paint();
     }
     last=now;timer=requestAnimationFrame(frame);
   }

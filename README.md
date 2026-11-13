@@ -26,7 +26,8 @@ ani service worker.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
-- Dostaň plné bílé vejce na cílovou podložku. Vejce i kameny padají,
+- Dostaň modrý krystal na cílovou podložku. V ČB ho poznáš podle hranatého tvaru
+  a světlých plošek. Krystal i obyčejné kameny padají,
   běžné kameny lze rozbít tlakem proti překážce ze strany nebo shora. Padající předměty drtí obludy
   i hráče. Houba nepřítele dočasně uspí.
 - Rozdrcený nepřítel se krátce zobrazí zploštělý. Kámen nad ním počká přibližně
@@ -133,11 +134,18 @@ Ikona palety v horním menu nebo **G** otevře výběr:
 
 - **Originál ČB** — dosavadní původní pixely, výchozí režim.
 - **Originál barevný** — stejné bitmapy s barevnou paletou; Flappy je žlutý,
-  žába zelená, duch fialový a cílové vejce tyrkysové.
+  žába zelená, duch fialový a cílový krystal modrý.
 - **Moderní barevný** — nové kreslené sprity z `assets/modern-sprites.png`,
   vykreslované do Canvasu 960 × 800 místo původních 240 × 200 pixelů.
   Flappy má podobu krtka s růžovým čumákem a hrabavými tlapkami; zdi tvoří
   červené cihly se střídavě posunutými spárami.
+  Cílový předmět používá samostatný modrý krystal z `assets/modern-crystal.png`.
+  Sektor a čas mají vyhlazené písmo; postava, krystal, kameny, nepřátelé a střely
+  se pohybují plynule mezi políčky pomocí `requestAnimationFrame`. Žáby při pohybu
+  poskakují a duchové se lehce vznášejí. Pauza zastaví i tyto animace.
+
+`src/motion.js` počítá pouze zobrazované mezisnímky. Simulace, kolize i časování
+herních kroků zůstávají beze změny; původní režimy používají krokový pohyb.
 
 Šipky vybírají položku, Enter potvrdí a Escape zavře nabídku. Volba se ukládá
 do `flappy.graphics`. Otevřená nabídka dočasně pozastaví běžící hru; změna stylu

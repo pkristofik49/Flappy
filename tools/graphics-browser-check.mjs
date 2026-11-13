@@ -67,6 +67,24 @@ try{
  })()`);
  assert.ok(deaths.results.every(r=>r.reason==='death.'+r.cause&&r.upper===0&&r.lower>0),'Both death causes must show only the flattened bottom half in every style');
  saveImage('player-deaths-all-styles.png',deaths.image);
+ const animation=await evaluate(`(async()=>{
+  const {Game}=await import('./src/engine.js'),{Motion}=await import('./src/motion.js'),{render}=await import('./src/render.js'),{loadModernSprites}=await import('./src/graphics.js');
+  const atlas=await loadModernSprites(),game=new Game({walls:[],objects:[{type:2,x:12,y:1},{type:3,x:9,y:1},{type:4,x:15,y:5},{type:5,x:20,y:5}]});
+  game.ammo=1;game.fire();game.ticks=4;game.random=()=>1;
+  const motion=new Motion();motion.reset(game);game.move(1,0);game.tick();motion.capture(game);
+  const before=JSON.stringify(game),objects=[game.player,...game.rocks,...game.enemies,...game.shots];
+  const board=document.createElement('canvas'),ctx=board.getContext('2d'),strip=document.createElement('canvas');strip.width=960;strip.height=267;
+  const images=[];let mid=[];
+  for(const [i,delta]of [0,60,120].entries()){
+   motion.advance(delta);render(ctx,game,undefined,undefined,null,{mode:'modern',atlas,motion});images.push(board.toDataURL());
+   strip.getContext('2d').drawImage(board,i*320,0,320,267);
+   if(i===1)mid=objects.map(o=>motion.position(o));
+  }
+  return{image:strip.toDataURL(),unique:new Set(images).size,mid,unchanged:JSON.stringify(game)===before};
+ })()`);
+ assert.equal(animation.unique,3);assert.equal(animation.unchanged,true);
+ assert.ok(animation.mid.every(p=>p.moving&&(!Number.isInteger(p.x)||!Number.isInteger(p.y))),'Player, crystal, stone, frog, ghost and shot must all render between grid cells');
+ saveImage('smooth-motion.png',animation.image);
  assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'paused');
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),time);
  await choose('mono');assert.equal(await width(),240);assert.equal(await board(),before,'Changing all three styles must preserve the paused world exactly');
@@ -82,6 +100,12 @@ try{
  await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await call('Page.reload');
  await until(`!!document.querySelector('.title-screen') && document.querySelector('canvas')?.dataset.graphics==='modern' && document.querySelector('canvas').width===960`);
  for(const mode of ['color','mono','modern']){await choose(mode);assert.equal(await width(),mode==='modern'?960:240)}
+ await evaluate(`document.querySelector('.title-screen').focus()`);await key('Space',' ');await until(`document.querySelector('canvas').dataset.state==='playing'`);await delay(150);
+ await key('ArrowRight');
+ const liveFrames=await evaluate(`new Promise(resolve=>{const frames=[],crop=document.createElement('canvas');crop.width=96;crop.height=64;const ctx=crop.getContext('2d');function sample(){ctx.drawImage(document.querySelector('canvas'),24,128,96,64,0,0,96,64);frames.push(crop.toDataURL());if(frames.length===8)resolve(new Set(frames).size);else requestAnimationFrame(sample)}requestAnimationFrame(sample)})`);
+ assert.ok(liveFrames>=4,'A single live player step must paint multiple requestAnimationFrame frames');
+ await key('KeyP','p');await until(`document.querySelector('canvas').dataset.state==='paused'`);
+ const pausedAnimation=await board();await delay(220);assert.equal(await board(),pausedAnimation,'Modern motion and hovering must stop during pause');
  await call('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true});await call('Emulation.setTouchEmulationEnabled',{enabled:true});
  assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true,'Four toolbar icons must fit on a 320px screen');
  await key('KeyF','f');await key('KeyG','g');await until(`document.querySelector('.graphics-menu-toggle').getAttribute('aria-expanded')==='true'`);

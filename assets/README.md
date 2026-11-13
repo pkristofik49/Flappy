@@ -14,7 +14,14 @@ Atlas má 4 × 4 buňky. Jejich pořadí zleva doprava:
 | 1 | Krtek vlevo postoj / krok, vpravo postoj / krok |
 | 2 | Krtek dolů postoj / krok, nahoru postoj / krok |
 | 3 | Žába vlevo, vpravo, dolů, nahoru |
-| 4 | Duch vlevo, hladké vejce, kámen, houba |
+| 4 | Duch vlevo, nepoužívaný původní cílový sprite, kámen, houba |
+
+Cílový předmět nově používá [modern-crystal.png](modern-crystal.png): hranatý
+modrý kámen s výraznými krystalickými ploškami. Jde o samostatný průhledný
+sprite vytvořený vestavěným imagegen; přesný prompt je v
+[modern-crystal-prompt.txt](modern-crystal-prompt.txt). Renderer jím nahrazuje
+druhou buňku posledního řádku atlasu. V původních režimech se vykresluje nová
+malá hranatá bitmapa krystalu, v ČB světlá a v barevném režimu modrá.
 
 `src/graphics.js` ořízne při načtení pouze průhledné okraje buněk pro vykreslení;
 zdrojové PNG nemění. Duch se zrcadlí při pohybu doprava, skoky žáby používají
@@ -24,6 +31,10 @@ pro každý směr; zadní pohled ukazuje záda bez obličeje.
 Moderní režim renderuje plochu v rozlišení 960 × 800 se zachováním stejné
 herní mřížky a kolizí. Zdivo je kreslené přes Canvas jako červené cihly ve dvou
 řadách na buňku, s půlcihlovým posunem svislých spár a světlou horní hranou.
+Ukazatele používají vyhlazené systémové písmo Arial bez dalších fontových souborů.
+`src/motion.js` interpoluje pozice všech pohyblivých objektů; fáze kroků, poskoky
+žab a vznášení duchů se vykreslují na snímcích prohlížeče. Kolizní mřížka zůstává
+stejná. Při smrti se obraz zarovná s místem kolize, při pauze se hodiny animací zastaví.
 
 ## Původní režimy
 

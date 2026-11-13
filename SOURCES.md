@@ -31,9 +31,12 @@ tento projekt nedává původním herním datům novou licenci.
 Herní mechanismy jsou nově implementovány: nejde o emulaci instrukcí PMD 85.
 Rychlost, AI nepřátel, střelba a okrajové kolize se mohou od originálu lišit.
 Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mřížce.
-Cílové vejce má zachovaný původní obrys, ale plnou bílou výplň, aby se v
-černobílém zobrazení jasně odlišilo od tečkovaných běžných kamenů. Bitmapy
-vejce a kamene v remasteru jsou stejné; samotný barevný rozdíl se do ČB nepřenáší.
+Cílový předmět je modrý kámen / krystal. Původně importované bitmapy cílového
+a obyčejného kamene jsou stejné; web proto nyní používá odlišnou hranatou bitmapu
+krystalu, světlou v ČB a modrou v barevném režimu. Moderní krystal je nová
+ilustrace vytvořená vestavěným imagegen v `assets/modern-crystal.png`, s přesným
+promptem v `assets/modern-crystal-prompt.txt`. Interní datové označení `egg`
+zůstalo kvůli kompatibilitě stávajících dat; v uživatelských textech je krystal.
 Chůze vlevo a vpravo střídá původní klidové a rozšířené krokové bitmapy PMD
 bez programových úprav nohou. Chůze dolů používá původní čelní snímky a jednu
 odvozenou fázi; fáze chůze nahoru jsou odvozené z původní zadní bitmapy.
@@ -48,7 +51,7 @@ Zůstávají viditelní 600 ms herního času; padající předmět po jejich zm
 pokračuje dolů. Jde o novou implementaci časování, nikoli emulaci originálu.
 Zmáčknutý Flappy používá další původní bitmapu 12 × 8 pixelů na adrese
 `0x25db`. Zobrazuje se v dolní polovině postavy po střetu s nepřítelem nebo
-pádu kamene či vejce; smrtelný předmět sestoupí nad tělo. Moderní režim zploští
+pádu kamene či krystalu; smrtelný předmět sestoupí nad tělo. Moderní režim zploští
 příslušný směrový sprite krtka. Prodleva před dalším životem či koncem hry je
 720 ms a zastaví se při pauze. Jde o nové časování webové implementace.
 Úvodní obrazovka `assets/title-screen.png` je z původního Flappy od VBG Software
@@ -59,10 +62,13 @@ v rozlišení 288 × 256 pixelů. SHA256 PNG:
 
 Rozložení životů, sektoru a času v horním zdivu vychází z uživatelem zadaného
 [snímku původní herní plochy](https://pmd85.borik.net/w/images/5/54/Vbg_flappy_2.png).
-Ukazatele jsou součástí herního Canvasu, s pixelovým písmem na mřížce 6 × 8
+Ukazatele jsou součástí herního Canvasu, v původních režimech s pixelovým písmem na mřížce 6 × 8
 a původními bitmapami postavy. Nástup života otevírá dvě buňky horní stěny,
 nechá Flappyho sestoupit z řady a průchod znovu uzavře. Časování je nově
 implementované; herní souřadnice a data všech 200 scén se nemění.
+Moderní ukazatele používají vyhlazené systémové písmo. Plynulé pozice v moderním
+režimu dopočítává samostatná zobrazovací vrstva `src/motion.js`, která nemění
+pravidla, kolize ani herní kroky. Jde o novou webovou animaci.
 Přechod mezi sektory nově napodobuje popsané chování originálu: bliknutí
 Flappyho, zaplnění místnosti zdivem a odkrytí další scény. Délky fází a
 vykreslování jsou implementovány pro web, nejde o emulaci původní rutiny PMD.

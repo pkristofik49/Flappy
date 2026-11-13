@@ -34,8 +34,8 @@ test('Accessible life counts use Czech and English plural rules',()=>{
 test('Death causes are language-independent keys which translate after the event',()=>{
  const g=new Game({walls:[],objects:[{type:3,x:5,y:1}]});g.player.x=5;g.player.y=3;g.tick();
  assert.equal(g.state,'dead');assert.equal(g.reason,'death.falling');
- assert.equal(translate('en',g.reason),'Watch out for falling stones and eggs.');
- assert.equal(translate('cs',g.reason),'Pozor na padající kameny a vejce.');
+ assert.equal(translate('en',g.reason),'Watch out for falling stones and the blue crystal.');
+ assert.equal(translate('cs',g.reason),'Pozor na padající kameny i modrý krystal.');
 });
 test('All UI translation keys, including notices and engine messages, are defined',()=>{
  const prefix='brand|meta|pwa|language|graphics|shortcut|view|status|action|intro|game|key|pause|death|win|sound|touch|direction|guide|keys|scene|notice|about|footer';
