@@ -2,8 +2,8 @@
 importScripts('./version.js');
 const PREFIX = 'flappy-pmd85-';
 const CACHE = PREFIX + globalThis.FLAPPY_VERSION;
-const FILES = ['./', './index.html', './style.css', './version.js', './manifest.webmanifest',
-  './src/app.js', './src/engine.js', './src/render.js', './assets/game-data.js', './assets/title-screen.png',
+const FILES = ['./', './index.html', './style.css', './version.js', './manifest.webmanifest', './manifest.en.webmanifest',
+  './src/app.js', './src/engine.js', './src/render.js', './src/audio.js', './src/i18n.js', './src/translations.js', './assets/game-data.js', './assets/title-screen.png',
   './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png',
   './vendor/vue.esm-browser.prod.js'];
 self.addEventListener('install', event => {

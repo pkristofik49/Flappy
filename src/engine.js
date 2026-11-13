@@ -49,13 +49,14 @@ export class Game {
       this.enemies=this.enemies.filter(e=>!intersects(e,rock));
     }
     p.x=target.x;p.y=target.y;
+    if(!rock)this.event='step';
     p.walkFrame=changedDirection?1:(p.walkFrame+1)%4;
     p.walkTick=this.ticks;p.walking=true;
     this.mushrooms=this.mushrooms.filter(m=>{if(intersects(p,m)){this.ammo++;this.event='collect';return false}return true});
     this.checkEnemies();this.checkGoal();return true;
   }
   fire(){if(this.state!=='playing'||!this.ammo)return false;this.ammo--;const p=this.player;this.shots.push({x:p.x+(p.dx>0?2:p.dx<0?-1:0),y:p.y+(p.dy>0?2:p.dy<0?-1:0),w:1,h:1,dx:p.dx,dy:p.dy,life:40});this.event='fire';return true}
-  checkEnemies(){if(this.enemies.some(e=>!e.sleep&&intersects(e,this.player)))this.die('Flappyho dostihla obluda. Zkus ji uspat houbou.')}
+  checkEnemies(){if(this.enemies.some(e=>!e.sleep&&intersects(e,this.player)))this.die('death.enemy')}
   checkGoal(){if(this.state==='playing'&&this.goal&&this.rocks.some(r=>r.egg&&r.x===this.goal.x&&(r.y+r.h===this.goal.y||intersects(r,this.goal)))){this.state='won';this.event='win'}}
   tick(){
     if(this.state!=='playing')return;
@@ -64,12 +65,15 @@ export class Game {
     for(const rock of [...this.rocks].sort((a,b)=>b.y-a.y)){
       const dest={...rock,y:rock.y+1};
       if(this.blocked(dest,rock)){
+        if(rock.falling)this.event='impact';
         rock.falling=false;
         // A supporting stone holds the object in place; gravity never moves it sideways.
         continue;
       }
-      if(intersects(dest,this.player)){this.die('Pozor na padající kameny a vejce.');return}
+      if(intersects(dest,this.player)){this.die('death.falling');return}
+      const enemyCount=this.enemies.length;
       this.enemies=this.enemies.filter(e=>!intersects(dest,e));
+      if(this.enemies.length<enemyCount)this.event='crush';
       rock.x=dest.x;rock.y=dest.y;rock.falling=true;
       this.checkGoal();if(this.state!=='playing')return;
     }

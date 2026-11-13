@@ -1,4 +1,5 @@
 import { sprites } from '../assets/game-data.js';
+import {translations} from './translations.js';
 // Preserve the native head and body. Two opposing steps use a raised body
 // and alternate the planted foot; the in-between poses bring the feet together.
 function stride(base,phase){
@@ -60,7 +61,7 @@ export function bitmap(ctx,data,x,y,width=2,height=16,color='#eef0e5',flip=false
   ctx.fillStyle=color;
   for(let row=0;row<height;row++)for(let col=0;col<width;col++)for(let bit=0;bit<6;bit++)if(data[row*width+col]&(1<<bit))ctx.fillRect(x+(flip?width*6-1-(col*6+bit):col*6+bit),y+row,1,1);
 }
-export function render(ctx,game){
+export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker']){
   ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,240,176);
   // PMD's native character cell is 6 × 8 pixels.
   ctx.fillStyle='#bfc5b9';
@@ -71,7 +72,7 @@ export function render(ctx,game){
   for(const e of game.enemies){
     const pose=enemySprite(e,game.ticks);
     bitmap(ctx,pose.data,e.x*6+pose.x,e.y*8+pose.y,pose.width,pose.height,e.sleep?'#6f7c60':'#dfe7d5',pose.flip);
-    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText('z',e.x*6+10,e.y*8+1)}
+    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText(sleepMarker,e.x*6+10,e.y*8+1)}
   }
   const p=game.player;
   const pose=playerPose(p);

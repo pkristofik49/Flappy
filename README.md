@@ -62,6 +62,46 @@ node tools/build.mjs
 GitHub Actions používají oficiální akce GitHubu pro checkout, Node a publikaci.
 Nejsou to závislosti běžící ve hře. Hosting žádný Node server nevyžaduje.
 
+## Jazyky a texty
+
+V hlavičce přepínej **CS / EN**. Výchozí jazyk je čeština jako v projektu
+[SMG](https://github.com/pkristofik49/SMG); volba se ukládá do `flappy.language`.
+Přepnutí zachová místnost i její stav a okamžitě přeloží otevřené hlášky.
+Bez dostupného localStorage funguje volba po dobu aktuální relace.
+
+Veškeré texty aplikace jsou v **`src/translations.js`**. Používají stejné
+ploché klíče a parametrické řetězce jako SMG, např. `win.scene` a `{scene}`.
+`src/i18n.js` poskytuje překladovou funkci a množné tvary pomocí nativního
+`Intl.PluralRules`. Vue vkládá text bezpečně jako text, nepoužívá se `v-html`
+ani knihovna pro překlady. Překládají se i ARIA popisky, metadata dokumentu
+a informace o instalované PWA. Původní kresba úvodní obrazovky zůstává zachovaná.
+
+Po změně překladů obnov generované statické soubory:
+
+```sh
+node tools/localize-static.mjs
+node tools/check.mjs
+```
+
+Generátor vytvoří český a anglický manifest a aktualizuje výchozí metadata
+i dvojjazyčný `noscript` v HTML. Tyto kopie neupravuj ručně; jediným zdrojem
+textů je slovník. Kontrola a GitHub Actions odhalí zastaralé generované soubory.
+Oba jazyky i manifesty se ukládají do offline cache.
+
+## Zvuk
+
+Zapni tlačítko **Zvuk vypnutý / Sound off** pod herní plochou. Volba se ukládá
+do `flappy.sound`. Po opětovném otevření se zvuk zapojí až při interakci hráče,
+nikoli automatickým přehráváním při načtení stránky.
+
+`src/audio.js` syntetizuje 11 krátkých obdélníkových efektů ve stylu vestavěného
+reproduktoru PMD: krok, posun kamene, rozbití, sebrání houby, výstřel, uspání,
+dopad, rozdrcení nepřítele, dokončení scény, smrt a start. Jde o novou zvukovou
+rekonstrukci, nikoli nahrávky či přesnou emulaci zvukové rutiny originálu.
+Web Audio je součástí prohlížeče; další knihovny ani soubory se zvukem nejsou
+potřeba. Vypnutí zvuku zastaví i rozeznělé efekty. Při pauze nebo přepnutí okna
+se zvuk zastaví. Hra funguje i při nedostupném nebo blokovaném audio rozhraní.
+
 ## Verze při commitu
 
 Jednorázově v každém klonu aktivuj hook:

@@ -42,3 +42,12 @@ uložena v černobílém rozlišení PMD 288 × 256. Obnoví ji příkaz
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.
 Žádné CDN, fontové služby, analytika ani jiné knihovny nejsou použity.
+
+## Zvukové podklady
+
+[Stránka autora FLAPPY2k](https://www.pmd85.cz/?page_id=965) uvádí podporu hudby
+i zvuků přes vestavěný akustický měnič PMD 85. Komentáře autora a testerů
+potvrzují herní zvukové efekty; hudební doprovod patří k úvodnímu menu.
+Webová verze má nově syntetizované krátké obdélníkové efekty přes nativní
+Web Audio (`src/audio.js`). Nejde o vzorky z původní hry ani o shodný výstup
+jejího strojového kódu. Hudba z menu remasteru nebyla převzata.
