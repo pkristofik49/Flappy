@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171a17">
+  <meta name="description" content="Flappy pro PMD 85. Dvě stě původních logických místností v černobílých pixelech, nyní na webu i offline.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <title>FLAPPY · PMD 85</title>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <header class="masthead">
+      <a class="wordmark" href="./" aria-label="Flappy — domů"><span class="mark">F</span> FLAPPY<span class="edition">PMD 85 / 1987</span></a>
+      <div class="header-actions"><span class="status"><i :class="{offline: !online}"></i>{{ online ? 'PŘIPRAVENO KE HŘE' : 'OFFLINE REŽIM' }}</span><button v-if="installPrompt" class="text-button" @click="install">Nainstalovat ↗</button></div>
+    </header>
+    <main>
+      <div class="intro"><div><div class="eyebrow">ZPÁTKY K OSMI BITŮM</div><h1>Malé kuře.<br>Velká výzva<span>.</span></h1></div><p>Jedno vejce, jedno správné místo.<br>Dvě stě místností, ve kterých rozhoduje<br>každý tvůj krok.</p></div>
+      <div class="game-layout">
+        <section class="machine" aria-label="Hra Flappy">
+          <div class="machine-top"><span><i></i> TESLA PMD 85</span><span>LOGICKÁ HRA / 01</span></div>
+          <div class="screen-wrap">
+            <div class="game-hud"><span>SCÉNA <b>{{ String(scene).padStart(3, '0') }}</b></span><span class="lives" :aria-label="`${lives} životů`">{{ '♥'.repeat(lives) }}</span><span>ČAS <b>{{ timeText }}</b></span></div>
+            <div class="viewport">
+              <canvas ref="canvas" width="240" height="176" tabindex="0" aria-label="Herní plocha. Pohyb šipkami nebo WASD, mezerník vystřelí houbu, P pozastaví hru."></canvas>
+              <div v-if="mode !== 'playing'" class="overlay">
+                <template v-if="mode === 'ready'"><span class="overlay-kicker">VBG SOFTWARE · WEB EDITION</span><h2>FLAPPY</h2><p>Dostaň vejce na označené místo.</p><button class="primary" @click="start">Začít hrát <span>↵</span></button><small>ŠIPKY / WASD / DOTYK</small></template>
+                <template v-if="mode === 'paused'"><span class="overlay-kicker">CHVÍLE NA ROZMYŠLENOU</span><h2>PAUZA</h2><button class="primary" @click="resume">Pokračovat ↵</button></template>
+                <template v-if="mode === 'dead'"><span class="overlay-kicker">{{ lives ? 'KAŽDÝ POKUS SE POČÍTÁ' : 'KONEC HRY' }}</span><h2>{{ lives ? 'JEŠTĚ JEDNOU' : 'GAME OVER' }}</h2><p>{{ message }}</p><button class="primary" @click="retry">{{ lives ? 'Zkusit znovu' : 'Nová hra' }} ↵</button></template>
+                <template v-if="mode === 'won'"><span class="overlay-kicker">VEJCE JE DOMA</span><h2>VÝBORNĚ!</h2><p>Scéna {{ scene }} je vyřešená.{{ scene === 200 ? ' Dokončil jsi celou hru!' : '' }}</p><button class="primary" @click="next">{{ scene === 200 ? 'Znovu od začátku' : 'Další místnost' }} ↵</button></template>
+              </div>
+            </div>
+            <div class="screen-bottom"><span>HOUBY <b>{{ ammo.toString().padStart(2, '0') }}</b></span><span>{{ mode === 'playing' ? 'HODNĚ ŠTĚSTÍ, FLAPPY!' : 'PŘEMÝŠLEJ. POSOUVEJ. VYŘEŠ.' }}</span></div>
+          </div>
+          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','paused'].includes(mode)">{{ mode === 'paused' ? '▶ Pokračovat' : 'Ⅱ Pauza' }} <kbd>P</kbd></button><button @click="restart">↻ Znovu <kbd>R</kbd></button><button @click="sound = !sound" :aria-pressed="sound">{{ sound ? '♫ Zvuk zapnutý' : '♫ Zvuk vypnutý' }}</button></div>
+          <div class="touch-controls" aria-label="Dotykové ovládání"><div class="dpad"><button class="up" aria-label="Nahoru" @pointerdown.prevent="hold(0,-1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↑</button><button class="left" aria-label="Vlevo" @pointerdown.prevent="hold(-1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">←</button><button class="down" aria-label="Dolů" @pointerdown.prevent="hold(0,1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↓</button><button class="right" aria-label="Vpravo" @pointerdown.prevent="hold(1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">→</button></div><button class="fire" @click="fire">VYSTŘELIT<br><small>HOUBU</small></button></div>
+        </section>
+        <aside>
+          <div class="guide-heading"><span class="eyebrow">MALÝ PRŮVODCE</span><span>01—03</span></div>
+          <article class="guide"><span class="step">01</span><div><h3>Vejce patří na podložku.</h3><p>Posouvej vzorované vejce na bílé cílové místo. Pozor, vejce i kameny padají dolů.</p></div></article>
+          <article class="guide"><span class="step">02</span><div><h3>Cestu si musíš promyslet.</h3><p>Kameny lze tlačit do stran. Obyčejný kámen rozbiješ přitlačením ke zdi. Označené vejce musí zůstat celé.</p></div></article>
+          <article class="guide"><span class="step">03</span><div><h3>Nejsi tu sám.</h3><p>Žáby a duchy uspíš nasbíranou houbou. Padající kámen je odstraní. Vyhýbej se jim i padajícím vejcím.</p></div></article>
+          <div class="keys"><h3>Všechno pod palcem.</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>Pohyb / WASD</span></p><p><kbd class="space">MEZERNÍK</kbd><span>Vystřelit houbu</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>Pauza / opakovat</span></p></div>
+          <div class="scene-picker"><label for="scene">Zpátky do místnosti</label><div><select id="scene" v-model.number="selectedScene"><option v-for="n in unlocked" :value="n">Scéna {{ String(n).padStart(3,'0') }}</option></select><button @click="chooseScene" aria-label="Otevřít vybranou místnost">↗</button></div><small>{{ unlocked }} / 200 ODEMČENO · POSTUP SE UKLÁDÁ</small></div>
+        </aside>
+      </div>
+      <p class="notice" aria-live="polite">{{ notice || 'Původní pixely. Nová platforma. Stejná radost z vyřešené hádanky.' }}</p>
+      <div class="about"><span class="eyebrow">1987 → DNES</span><p>Vzpomínka na časy, kdy se hry nahrávaly z kazety.<br>Černobílé bitmapy a 200 scén z PMD 85, přímo ve tvém prohlížeči.</p><a href="https://www.pmd85.cz/?page_id=965" target="_blank" rel="noopener">O původní hře ↗</a></div>
+    </main>
+    <footer><strong>FLAPPY <span>v{{ version }}</span></strong><span>Pocta VBG Software · Data FLAPPY2k</span><a href="https://github.com/pkristofik49/Flappy" target="_blank" rel="noopener">ZDROJOVÝ KÓD ↗</a></footer>
+  </div>
+  <noscript>Pro spuštění hry Flappy povol JavaScript.</noscript>
+  <script src="./version.js"></script>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
