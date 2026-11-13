@@ -38,6 +38,9 @@ ani service worker.
   automaticky sestoupí do místnosti dočasným otvorem ve zdi. Zeď se zavře až
   za ním. Během nástupu stojí čas i objekty v místnosti; pauza zastaví i nástup.
   Po vyčerpání životů se zobrazí konec hry s možností nové hry.
+- Po vyřešení místnosti Flappy třikrát zabliká, plochu zaplní zdivo a následně
+  se odkryje další sektor. Přechod i nástup jsou automatické; životy se zachovají.
+  Pauza zastaví i tento přechod. Po sektoru 200 se zobrazí závěrečné vítězství.
 
 ## PWA a offline
 

@@ -77,7 +77,7 @@ function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translati
   pixelText(ctx,timeLabel,174,8);pixelText(ctx,timeText,210,8);
   pixelText(ctx,credit,174,16,'#aab2a2');
 }
-export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],hud){
+export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],hud,transition=null){
   ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
   drawHud(ctx,game,hud);
   ctx.save();ctx.translate(0,HUD_HEIGHT);
@@ -94,7 +94,12 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
   }
   const p=game.player;
   const pose=playerPose(p);
-  bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height);
+  if(!transition||transition.playerVisible)bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height);
   for(const s of game.shots)bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8);
+  if(transition)for(let i=transition.firstCoveredCell;i<transition.firstCoveredCell+transition.coveredCells;i++){
+    const x=(i%40)*6,y=Math.floor(i/40)*8;
+    ctx.fillStyle='#000';ctx.fillRect(x,y,6,8);
+    ctx.fillStyle='#bfc5b9';brick(ctx,x,y);
+  }
   ctx.restore();
 }

@@ -4,6 +4,7 @@ import { Game } from './engine.js';
 import { render } from './render.js';
 import {LANGUAGE_KEY,languages,loadLanguage,translate,plural as translatePlural} from './i18n.js';
 import {GameAudio,SOUND_KEY,loadSound} from './audio.js';
+import {LevelTransition} from './transition.js';
 const STORAGE='flappy-pmd85-progress-v1';
 function loadProgress(){try{const p=JSON.parse(localStorage.getItem(STORAGE));return {unlocked:Math.max(1,Math.min(200,Math.floor(Number(p?.unlocked)||1))),scene:Math.max(1,Math.min(200,Math.floor(Number(p?.scene)||1)))}}catch{return{unlocked:1,scene:1}}}
 createApp({setup(){
@@ -12,15 +13,16 @@ createApp({setup(){
   const plural=(key,count)=>translatePlural(language.value,key,count);
   const progress=loadProgress();const canvas=ref(null),scene=ref(Math.min(progress.scene,progress.unlocked)),selectedScene=ref(scene.value),unlocked=ref(progress.unlocked);
   const mode=ref('ready'),lives=ref(5),ammo=ref(0),remaining=ref(360),sound=ref(loadSound()),online=ref(navigator.onLine),installPrompt=ref(null),message=ref(''),notice=ref('');
+  const transitionPhase=ref('');
   const audioAvailable=Boolean(window.AudioContext||window.webkitAudioContext);
   const audio=new GameAudio();audio.setEnabled(sound.value);
   const version=globalThis.FLAPPY_VERSION;const timeText=computed(()=>`${Math.floor(remaining.value/60)}:${String(remaining.value%60).padStart(2,'0')}`);
-  let game,ctx,timer,held=null,holdTimer,elapsed=0,last=0,deathElapsed=0,pausedFrom='playing';
+  let game,ctx,timer,transition=null,held=null,holdTimer,elapsed=0,last=0,deathElapsed=0,pausedFrom='playing';
   function setLanguage(code){
     if(!languages.some(option=>option.code===code))return;
     language.value=code;
     try{localStorage.setItem(LANGUAGE_KEY,code)}catch{/* Keep the in-memory choice. */}
-    if(mode.value==='playing'||mode.value==='entering')focus();
+    if(['playing','entering','transition'].includes(mode.value))focus();
   }
   watch(language,()=>{
     document.documentElement.lang=language.value;
@@ -29,13 +31,13 @@ createApp({setup(){
     document.querySelector('#pwa-manifest').setAttribute('href',language.value==='en'?'./manifest.en.webmanifest':'./manifest.webmanifest');
     paint();
   },{immediate:true});
-  function save(){try{localStorage.setItem(STORAGE,JSON.stringify({scene:scene.value,unlocked:unlocked.value}))}catch{notice.value='notice.storage'}}
+  function save(savedScene=scene.value){try{localStorage.setItem(STORAGE,JSON.stringify({scene:savedScene,unlocked:unlocked.value}))}catch{notice.value='notice.storage'}}
   function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});remaining.value=360;elapsed=0;deathElapsed=0;ammo.value=0;held=null;release();paint()}
-  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')})}
+  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')},transition)}
   function focus(){canvas.value?.focus({preventScroll:true})}
-  function start(){notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
+  function start(){transition=null;transitionPhase.value='';notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
   function resume(){mode.value=pausedFrom;held=null;last=performance.now();focus()}
-  function togglePause(){if(mode.value==='playing'||mode.value==='entering'){pausedFrom=mode.value;mode.value='paused';held=null;release();audio.stop()}else if(mode.value==='paused')resume()}
+  function togglePause(){if(['playing','entering','transition'].includes(mode.value)){pausedFrom=mode.value;mode.value='paused';held=null;release();audio.stop()}else if(mode.value==='paused')resume()}
   function restart(){start()}
   function retry(){if(!lives.value)lives.value=5;start()}
   function next(){if(scene.value===200){scene.value=1;lives.value=5}else scene.value++;selectedScene.value=scene.value;start()}
@@ -46,13 +48,17 @@ createApp({setup(){
     sound.value=!sound.value;audio.setEnabled(sound.value);
     try{localStorage.setItem(SOUND_KEY,String(sound.value))}catch{/* Keep the in-memory choice. */}
     if(sound.value)beep('collect');
-    if(mode.value==='playing'||mode.value==='entering')focus();
+    if(['playing','entering','transition'].includes(mode.value))focus();
   }
   function sync(){
     if(game.state==='playing'&&mode.value==='entering'){mode.value='playing';held=null}
     ammo.value=game.ammo;
     if(game.event){beep(game.event);game.event=null}
-    if(game.state==='won'&&mode.value==='playing'){mode.value='won';unlocked.value=Math.max(unlocked.value,Math.min(200,scene.value+1));save();held=null;release()}
+    if(game.state==='won'&&mode.value==='playing'){
+      transition=new LevelTransition({final:scene.value===200});transitionPhase.value=transition.phase;mode.value='transition';
+      notice.value=scene.value===200?'win.finished':'notice.nextRoom';
+      unlocked.value=Math.max(unlocked.value,Math.min(200,scene.value+1));save(Math.min(200,scene.value+1));held=null;release();
+    }
     if(game.state==='dead'&&mode.value==='playing'){lives.value=Math.max(0,lives.value-1);message.value=game.reason;notice.value=game.reason;mode.value='dead';deathElapsed=0;held=null;release();beep('dead')}
     paint();
   }
@@ -65,7 +71,7 @@ createApp({setup(){
     if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName))return;
     if(e.target.tagName==='BUTTON'&&!e.target.classList.contains('title-screen'))return;
     if(mode.value==='ready'&&(e.code==='Space'||e.code==='Enter')){e.preventDefault();if(!e.repeat)start();return}
-    if(mode.value==='entering'&&(directions[e.code]||e.code==='Space')){e.preventDefault();return}
+    if(['entering','transition'].includes(mode.value)&&(directions[e.code]||e.code==='Space')){e.preventDefault();return}
     if(directions[e.code]){e.preventDefault();if(!e.repeat){held={code:e.code,dir:directions[e.code],at:performance.now()+160};move(...held.dir)}return}
     if(e.code==='Space'){e.preventDefault();if(!e.repeat)fire()}
     if(e.repeat)return;
@@ -74,7 +80,7 @@ createApp({setup(){
     if(e.code==='Enter'){e.preventDefault();if(mode.value==='paused')resume();else if(mode.value==='won')next();else if(mode.value==='dead')retry();else if(mode.value==='ready')start()}
   }
   function keyup(e){if(held?.code===e.code)held=null}
-  function blur(){held=null;release();audio.stop();if(mode.value==='playing'||mode.value==='entering'||(mode.value==='dead'&&lives.value>0)){pausedFrom=mode.value;mode.value='paused'}}
+  function blur(){held=null;release();audio.stop();if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&lives.value>0)){pausedFrom=mode.value;mode.value='paused'}}
   function visibility(){if(document.hidden)blur()}
   function connectivity(){online.value=navigator.onLine}
   function beforeInstall(e){e.preventDefault();installPrompt.value=e}
@@ -83,6 +89,16 @@ createApp({setup(){
   function frame(){
     const now=performance.now(),delta=Math.min(now-last,250);
     if(mode.value==='dead'&&lives.value>0&&!document.hidden){deathElapsed+=delta;if(deathElapsed>=720)start()}
+    else if(mode.value==='transition'){
+      const result=transition.advance(delta);transitionPhase.value=transition.phase;
+      if(result.loadNext){scene.value++;selectedScene.value=scene.value;reset({entering:true});save()}
+      if(result.finished){
+        const final=transition.final;transition=null;transitionPhase.value='';elapsed=0;held=null;
+        mode.value=final?'won':'entering';
+        if(notice.value==='notice.nextRoom')notice.value='';
+      }
+      paint();
+    }
     else if(mode.value==='playing'||mode.value==='entering'){
       elapsed+=delta;
       if(held&&now>=held.at){const active=held;move(...active.dir);if(held===active)held.at=now+120}
@@ -103,5 +119,5 @@ createApp({setup(){
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
   onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',connectivity);window.removeEventListener('offline',connectivity);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed)});
-  return{language,languages,setLanguage,t,plural,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  return{language,languages,setLanguage,t,plural,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');

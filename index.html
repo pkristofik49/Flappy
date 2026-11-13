@@ -32,7 +32,7 @@
           <div class="screen-wrap" :class="{ 'show-title': mode === 'ready' }">
             <div class="game-hud sr-only"><span>{{ t('game.scene') }} <b>{{ String(scene).padStart(3, '0') }}</b></span><span class="lives" :aria-label="plural('game.lives', lives)">{{ lives }}</span><span>{{ t('game.time') }} <b>{{ timeText }}</b></span></div>
             <div class="viewport">
-              <canvas ref="canvas" width="240" height="200" tabindex="0" :data-state="mode" :aria-label="t('game.canvas')"></canvas>
+              <canvas ref="canvas" width="240" height="200" tabindex="0" :data-state="mode" :data-transition="transitionPhase || undefined" :aria-label="t('game.canvas')"></canvas>
               <button v-if="mode === 'ready'" class="title-screen" @click="start" :aria-label="t('game.start')">
                 <img src="./assets/title-screen.png" width="288" height="256" :alt="t('game.titleImage')" fetchpriority="high" draggable="false">
                 <span class="title-prompt">{{ t('game.startPrompt') }} <kbd>{{ t('key.space') }}</kbd></span>
@@ -45,7 +45,7 @@
             </div>
             <div class="screen-bottom"><span>{{ t('game.ammo') }} <b>{{ ammo.toString().padStart(2, '0') }}</b></span><span>{{ t(mode === 'playing' ? 'game.goodLuck' : 'game.motto') }}</span></div>
           </div>
-          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','paused'].includes(mode)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button><button @click="toggleSound" :disabled="!audioAvailable" :title="t(audioAvailable ? (sound ? 'sound.on' : 'sound.off') : 'sound.unavailable')" :aria-pressed="sound">♫ {{ t(sound ? 'sound.on' : 'sound.off') }}</button></div>
+          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','transition','paused'].includes(mode)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button><button @click="toggleSound" :disabled="!audioAvailable" :title="t(audioAvailable ? (sound ? 'sound.on' : 'sound.off') : 'sound.unavailable')" :aria-pressed="sound">♫ {{ t(sound ? 'sound.on' : 'sound.off') }}</button></div>
           <div class="touch-controls" :aria-label="t('touch.label')"><div class="dpad"><button class="up" :aria-label="t('direction.up')" @pointerdown.prevent="hold(0,-1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↑</button><button class="left" :aria-label="t('direction.left')" @pointerdown.prevent="hold(-1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">←</button><button class="down" :aria-label="t('direction.down')" @pointerdown.prevent="hold(0,1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↓</button><button class="right" :aria-label="t('direction.right')" @pointerdown.prevent="hold(1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">→</button></div><button class="fire" @click="fire">{{ t('action.fire') }}<br><small>{{ t('action.fireObject') }}</small></button></div>
         </section>
         <aside>

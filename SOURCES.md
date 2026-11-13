@@ -50,6 +50,9 @@ Ukazatele jsou součástí herního Canvasu, s pixelovým písmem na mřížce 6
 a původními bitmapami kuřátek. Nástup života otevírá dvě buňky horní stěny,
 nechá kuřátko sestoupit z řady a průchod znovu uzavře. Časování je nově
 implementované; herní souřadnice a data všech 200 scén se nemění.
+Přechod mezi sektory nově napodobuje popsané chování originálu: bliknutí
+Flappyho, zaplnění místnosti zdivem a odkrytí další scény. Délky fází a
+vykreslování jsou implementovány pro web, nejde o emulaci původní rutiny PMD.
 
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.
