@@ -123,6 +123,23 @@ v SMG. **F / Escape** vrátí běžné rozložení. Ovládací ikony zůstanou d
 na mobilu se plocha přizpůsobí výšce i otočení zařízení včetně dotykových tlačítek.
 Zkratky L / Z / F nereagují při psaní do vstupních polí ani s modifikačními klávesami.
 
+## Grafické režimy
+
+Ikona palety v horním menu nebo **G** otevře výběr:
+
+- **Originál ČB** — dosavadní původní pixely, výchozí režim.
+- **Originál barevný** — stejné bitmapy s barevnou paletou; kuře je žluté,
+  žába zelená, duch fialový a cílové vejce tyrkysové.
+- **Moderní barevný** — nové kreslené sprity z `assets/modern-sprites.png`,
+  vykreslované do Canvasu 960 × 800 místo původních 240 × 200 pixelů.
+
+Šipky vybírají položku, Enter potvrdí a Escape zavře nabídku. Volba se ukládá
+do `flappy.graphics`. Otevřená nabídka dočasně pozastaví běžící hru; změna stylu
+zachová pozice, čas, životy i houby. Všechny tři režimy fungují offline po prvním
+načtení. Úvodní obrazovka zůstává původní ve všech režimech.
+Žádná další knihovna není potřeba. Původ a přehled moderních spritů viz
+[assets/README.md](assets/README.md).
+
 ## Verze při commitu
 
 Jednorázově v každém klonu aktivuj hook:

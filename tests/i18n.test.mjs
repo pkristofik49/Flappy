@@ -38,7 +38,7 @@ test('Death causes are language-independent keys which translate after the event
  assert.equal(translate('cs',g.reason),'Pozor na padající kameny a vejce.');
 });
 test('All UI translation keys, including notices and engine messages, are defined',()=>{
- const prefix='brand|meta|pwa|language|status|action|intro|game|key|pause|death|win|sound|touch|direction|guide|keys|scene|notice|about|footer';
+ const prefix='brand|meta|pwa|language|graphics|shortcut|view|status|action|intro|game|key|pause|death|win|sound|touch|direction|guide|keys|scene|notice|about|footer';
  const pattern=new RegExp(`['"]((?:${prefix})\\.[A-Za-z.]+)['"]`,'g');
  for(const file of ['index.html','src/app.js','src/engine.js','src/render.js']){
   const text=fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');

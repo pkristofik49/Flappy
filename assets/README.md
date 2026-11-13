@@ -1,5 +1,30 @@
 # Herní grafika
 
+## Moderní barevný režim
+
+[modern-sprites.png](modern-sprites.png) je samostatný atlas 1254 × 1254 pixelů
+s průhledným pozadím. Nová grafika vznikla vestavěným nástrojem **imagegen**;
+přesný použitý prompt je uložen v [modern-prompt.txt](modern-prompt.txt).
+PNG je uložený beze změn, včetně alfa kanálu. Nejde o bitmapy z historické hry.
+
+Atlas má 4 × 4 buňky. Jejich pořadí zleva doprava:
+
+| Řádek | Snímky |
+| --- | --- |
+| 1 | Kuře vlevo postoj / krok, vpravo postoj / krok |
+| 2 | Kuře dolů postoj / krok, nahoru postoj / krok |
+| 3 | Žába vlevo, vpravo, dolů, nahoru |
+| 4 | Duch vlevo, hladké vejce, kámen, houba |
+
+`src/graphics.js` ořízne při načtení pouze průhledné okraje buněk pro vykreslení;
+zdrojové PNG nemění. Duch se zrcadlí při pohybu doprava, skoky žáby používají
+její směrové snímky a krátké zvednutí. Mrtvolka používá zploštění příslušného
+spritu. Kuře střídá dva kreslené snímky pro každý směr.
+Moderní režim renderuje plochu v rozlišení 960 × 800 se zachováním stejné
+herní mřížky a kolizí. Zdivo je kreslené přes Canvas s jemnými hranami.
+
+## Původní režimy
+
 `title-screen.png` je původní úvodní obrazovka Flappy od VBG Software (1987),
 stažená beze změn ze [souboru Vbg_flappy_3.png na PMD 85 Infoserveru](https://pmd85.borik.net/w/images/b/bc/Vbg_flappy_3.png).
 Má rozlišení 288 × 256 pixelů. Zobrazuje se po otevření hry; výzva ke spuštění

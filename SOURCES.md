@@ -1,5 +1,13 @@
 # Původ dat a grafiky
 
+Nový režim **Moderní barevný** používá samostatné AI generované ilustrace
+v `assets/modern-sprites.png` (vestavěný imagegen). Přesný prompt a pořadí
+snímků jsou v `assets/modern-prompt.txt` a `assets/README.md`. Jde o novou
+grafiku tohoto projektu, která nenahrazuje historická data.
+Režim **Originál barevný** obarvuje stávající bitmapy paletou zvolenou pro web.
+Barevné varianty PMD jsou doložené na [stránce autora FLAPPY2k](https://www.pmd85.cz/?page_id=965);
+webové obarvení není emulací konkrétního hardwarového barevného režimu.
+
 Webová implementace vzdává hold hře **Flappy** pro PMD 85 (VBG Software, 1987;
 Vlastimil Veselý, Libor Bedrlík a Ladislav Gavar). Původní koncept Flappy:
 Shoichi Shibata a Kazuyuki Okujama / dB-SOFT.
