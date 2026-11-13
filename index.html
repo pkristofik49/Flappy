@@ -13,14 +13,21 @@
   <title>FLAPPY · PMD 85</title>
 </head>
 <body>
-  <div id="app" v-cloak>
+  <div id="app" v-cloak><div class="application" :class="{ 'expanded-mode': expanded }" :style="expanded ? { '--expanded-machine-width': expandedWidth + 'px' } : null">
     <header class="masthead">
       <a class="wordmark" href="./" :aria-label="t('brand.home')"><span class="mark">{{ t('brand.mark') }}</span> {{ t('brand.name') }}<span class="edition">{{ t('brand.edition') }}</span></a>
       <div class="header-actions">
         <span class="status"><i :class="{offline: !online}"></i>{{ t(online ? 'status.ready' : 'status.offline') }}</span>
         <button v-if="installPrompt" class="text-button" @click="install">{{ t('action.install') }} ↗</button>
-        <div class="language-switch" role="group" :aria-label="t('language.change')">
-          <button v-for="option in languages" :key="option.code" type="button" :lang="option.code" :aria-label="option.name" :title="option.name" :aria-pressed="language === option.code" :data-language="option.code" @click="setLanguage(option.code)">{{ option.short }}</button>
+        <div class="global-controls">
+          <div ref="languagePicker" class="language-picker" @focusout="onLanguagePickerBlur">
+            <button ref="languageMenuButton" type="button" class="language-menu-toggle topbar-button" aria-keyshortcuts="L" :aria-label="t('language.change')" :title="shortcutTitle('language.change','L')" aria-controls="language-options" :aria-expanded="languageMenuOpen" @click="toggleLanguageMenu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/></svg></button>
+            <Transition name="toolbar-menu"><div id="language-options" v-show="languageMenuOpen" :aria-hidden="!languageMenuOpen" :inert="!languageMenuOpen" class="language-switch" role="group" :aria-label="t('language.change')">
+              <button v-for="option in languages" :key="option.code" type="button" :lang="option.code" :aria-label="option.name" :aria-pressed="language === option.code" :data-language="option.code" @click="setLanguage(option.code)">{{ option.name }}</button>
+            </div></Transition>
+          </div>
+          <button type="button" class="sound-button topbar-button" aria-keyshortcuts="Z" :aria-pressed="sound" :aria-label="t(audioAvailable ? (sound ? 'sound.on' : 'sound.off') : 'sound.unavailable')" :disabled="!audioAvailable" :title="audioAvailable ? shortcutTitle(sound ? 'sound.on' : 'sound.off','Z') : t('sound.unavailable')" @click="toggleSound"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path v-if="sound" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path v-else d="m3 3 18 18"/></svg></button>
+          <button type="button" class="fullscreen-button topbar-button" aria-keyshortcuts="F" :aria-pressed="expanded" :aria-label="t(expanded ? 'view.restore' : 'view.expand')" :title="shortcutTitle(expanded ? 'view.restore' : 'view.expand','F')" @click="toggleExpanded"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path v-if="!expanded" d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path v-else d="M3 8h5V3m8 0v5h5M8 21v-5H3m18 0h-5v5"/></svg></button>
         </div>
       </div>
     </header>
@@ -45,7 +52,7 @@
             </div>
             <div class="screen-bottom"><span>{{ t('game.ammo') }} <b>{{ ammo.toString().padStart(2, '0') }}</b></span><span>{{ t(mode === 'playing' ? 'game.goodLuck' : 'game.motto') }}</span></div>
           </div>
-          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','transition','paused'].includes(mode)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button><button @click="toggleSound" :disabled="!audioAvailable" :title="t(audioAvailable ? (sound ? 'sound.on' : 'sound.off') : 'sound.unavailable')" :aria-pressed="sound">♫ {{ t(sound ? 'sound.on' : 'sound.off') }}</button></div>
+          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','transition','paused'].includes(mode)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button></div>
           <div class="touch-controls" :aria-label="t('touch.label')"><div class="dpad"><button class="up" :aria-label="t('direction.up')" @pointerdown.prevent="hold(0,-1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↑</button><button class="left" :aria-label="t('direction.left')" @pointerdown.prevent="hold(-1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">←</button><button class="down" :aria-label="t('direction.down')" @pointerdown.prevent="hold(0,1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↓</button><button class="right" :aria-label="t('direction.right')" @pointerdown.prevent="hold(1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">→</button></div><button class="fire" @click="fire">{{ t('action.fire') }}<br><small>{{ t('action.fireObject') }}</small></button></div>
         </section>
         <aside>
@@ -53,7 +60,7 @@
           <article class="guide"><span class="step">01</span><div><h3>{{ t('guide.eggTitle') }}</h3><p>{{ t('guide.eggText') }}</p></div></article>
           <article class="guide"><span class="step">02</span><div><h3>{{ t('guide.stoneTitle') }}</h3><p>{{ t('guide.stoneText') }}</p></div></article>
           <article class="guide"><span class="step">03</span><div><h3>{{ t('guide.enemyTitle') }}</h3><p>{{ t('guide.enemyText') }}</p></div></article>
-          <div class="keys"><h3>{{ t('keys.title') }}</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>{{ t('keys.move') }}</span></p><p><kbd class="space">{{ t('key.space') }}</kbd><span>{{ t('keys.fire') }}</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>{{ t('keys.pauseRestart') }}</span></p></div>
+          <div class="keys"><h3>{{ t('keys.title') }}</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>{{ t('keys.move') }}</span></p><p><kbd class="space">{{ t('key.space') }}</kbd><span>{{ t('keys.fire') }}</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>{{ t('keys.pauseRestart') }}</span></p><p class="global-keys">{{ t('keys.global') }}</p></div>
           <div class="scene-picker"><label for="scene">{{ t('scene.choose') }}</label><div><select id="scene" v-model.number="selectedScene"><option v-for="n in unlocked" :value="n">{{ t('scene.option', {scene: String(n).padStart(3,'0')}) }}</option></select><button @click="chooseScene" :aria-label="t('scene.open')">↗</button></div><small>{{ t('scene.unlocked', {count: unlocked}) }}</small></div>
         </aside>
       </div>
@@ -61,7 +68,7 @@
       <div class="about"><span class="eyebrow">{{ t('about.eyebrow') }}</span><p>{{ t('about.text') }}</p><a href="https://www.pmd85.cz/?page_id=965" target="_blank" rel="noopener">{{ t('about.link') }} ↗</a></div>
     </main>
     <footer><strong>{{ t('brand.name') }} <span>{{ t('brand.version', {version}) }}</span></strong><span>{{ t('footer.credits') }}</span><a href="https://github.com/pkristofik49/Flappy" target="_blank" rel="noopener">{{ t('footer.source') }} ↗</a></footer>
-  </div>
+  </div></div>
   <noscript><p lang="cs">Pro spuštění hry Flappy povol JavaScript.</p><p lang="en">Enable JavaScript to play Flappy.</p></noscript>
   <script src="./version.js"></script>
   <script type="module" src="./src/app.js"></script>

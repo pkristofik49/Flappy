@@ -15,3 +15,31 @@
 /* The status strip is drawn into the same pixel canvas as the room. */
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .viewport{aspect-ratio:240/200;margin-top:0}
+/* Global icon toolbar, matching SMG's controls and keyboard conventions. */
+.global-controls{display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:20}
+.topbar-button{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:8px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink)}
+.topbar-button:hover:not(:disabled),.topbar-button[aria-expanded="true"],.topbar-button[aria-pressed="true"]{color:var(--accent);border-color:#748354}
+.language-picker{position:relative}
+.language-switch{position:absolute;top:calc(100% + 8px);right:0;display:flex;flex-direction:column;width:154px;max-width:calc(100vw - 24px);padding:5px;gap:3px;background:var(--panel);border:1px solid #566344;box-shadow:0 8px 24px #0007;z-index:30;transform-origin:top right}
+.language-switch button{text-align:left;padding:10px 12px;font-size:12px;min-height:38px;border-radius:2px}
+.toolbar-menu-enter-active,.toolbar-menu-leave-active{transition:opacity .16s ease,transform .16s ease}
+.toolbar-menu-enter-from,.toolbar-menu-leave-to{opacity:0;transform:translateY(-5px) scale(.97)}
+.keys .global-keys{display:block;font-size:9px;line-height:1.9;margin-top:16px}
+body.game-expanded{overflow:hidden}
+.expanded-mode{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:hidden}
+.expanded-mode .masthead{position:absolute;inset:0 0 auto;min-height:0;height:64px;max-width:none;padding:0;border:0}
+.expanded-mode .masthead .wordmark,.expanded-mode .header-actions>.status,.expanded-mode .header-actions>.text-button{display:none}
+.expanded-mode .global-controls{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:120}
+.expanded-mode main{max-width:none;height:100dvh;width:100%;padding:64px 12px 12px;display:flex;align-items:center;justify-content:center}
+.expanded-mode .intro,.expanded-mode aside,.expanded-mode .notice,.expanded-mode .about,.expanded-mode footer,.expanded-mode .machine-top{display:none}
+.expanded-mode .game-layout{display:block;width:var(--expanded-machine-width);max-width:100%;margin:0}
+.expanded-mode .machine{padding:12px 12px 0;width:100%}
+.expanded-mode .screen-wrap{padding:8px}
+.expanded-mode .screen-bottom{padding:8px 0 2px}
+.expanded-mode .machine-controls{padding:8px 0;justify-content:space-evenly}
+.expanded-mode .touch-controls{padding:8px 4px}
+@media(max-width:760px){.global-controls{gap:5px}.topbar-button{width:36px;height:36px;padding:6px}.header-actions>.text-button{display:none}}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:520px){.expanded-mode .touch-controls{position:fixed;bottom:8px;left:8px;right:8px;border:0;background:transparent;pointer-events:none}.expanded-mode .touch-controls button{pointer-events:auto}}
+@media(prefers-reduced-motion:reduce){.toolbar-menu-enter-active,.toolbar-menu-leave-active{transition:none}}
+@media(max-width:760px){.header-actions>.text-button{display:block;order:2;flex-basis:100%;text-align:right;padding:2px 0}}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:520px) and (max-width:599px){.expanded-mode .touch-controls{position:static;pointer-events:auto}}

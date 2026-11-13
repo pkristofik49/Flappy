@@ -1,4 +1,4 @@
-import { createApp, ref, computed, watch, onMounted, onUnmounted } from '../vendor/vue.esm-browser.prod.js';
+import { createApp, ref, computed, watch, nextTick, onMounted, onUnmounted } from '../vendor/vue.esm-browser.prod.js';
 import { levels } from '../assets/game-data.js';
 import { Game } from './engine.js';
 import { render } from './render.js';
@@ -14,15 +14,69 @@ createApp({setup(){
   const progress=loadProgress();const canvas=ref(null),scene=ref(Math.min(progress.scene,progress.unlocked)),selectedScene=ref(scene.value),unlocked=ref(progress.unlocked);
   const mode=ref('ready'),lives=ref(5),ammo=ref(0),remaining=ref(360),sound=ref(loadSound()),online=ref(navigator.onLine),installPrompt=ref(null),message=ref(''),notice=ref('');
   const transitionPhase=ref('');
+  const languageMenuOpen=ref(false),languagePicker=ref(null),languageMenuButton=ref(null);
+  const expanded=ref(false),expandedWidth=ref(760);
   const audioAvailable=Boolean(window.AudioContext||window.webkitAudioContext);
   const audio=new GameAudio();audio.setEnabled(sound.value);
   const version=globalThis.FLAPPY_VERSION;const timeText=computed(()=>`${Math.floor(remaining.value/60)}:${String(remaining.value%60).padStart(2,'0')}`);
-  let game,ctx,timer,transition=null,held=null,holdTimer,elapsed=0,last=0,deathElapsed=0,pausedFrom='playing';
+  let game,ctx,timer,transition=null,held=null,holdTimer,elapsed=0,last=0,deathElapsed=0,pausedFrom='playing',menuPaused=false,previousScroll=0;
+  const shortcutTitle=(key,shortcut)=>t('shortcut.title',{action:t(key),key:shortcut});
+  function closeLanguageMenu(restoreFocus=false,resumeMenu=true){
+    languageMenuOpen.value=false;
+    const shouldResume=menuPaused&&resumeMenu;menuPaused=false;
+    if(shouldResume&&mode.value==='paused')resume();
+    if(restoreFocus)void nextTick(()=>languageMenuButton.value?.focus({preventScroll:true}));
+  }
+  async function toggleLanguageMenu(){
+    if(languageMenuOpen.value){closeLanguageMenu(true);return}
+    menuPaused=['playing','entering','transition'].includes(mode.value);
+    if(menuPaused)togglePause();
+    languageMenuOpen.value=true;
+    await nextTick();
+    if(languageMenuOpen.value)languagePicker.value?.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+  }
+  function onLanguagePickerBlur(event){if(!event.currentTarget.contains(event.relatedTarget))closeLanguageMenu()}
+  function outsideControls(event){if(languageMenuOpen.value&&!languagePicker.value?.contains(event.target))closeLanguageMenu()}
+  function languageKey(event){
+    if(!languageMenuOpen.value)return false;
+    const options=Array.from(languagePicker.value?.querySelectorAll('[data-language]')??[]);
+    const index=options.indexOf(document.activeElement);
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+      event.preventDefault();const step=event.key==='ArrowDown'?1:-1;
+      options[index<0?(step>0?0:options.length-1):(index+step+options.length)%options.length]?.focus({preventScroll:true});return true;
+    }
+    if(event.key==='Enter'&&index>=0){event.preventDefault();if(!event.repeat)options[index].click();return true}
+    if(event.key==='Escape'){event.preventDefault();closeLanguageMenu(true);return true}
+    return false;
+  }
+  async function sizeExpanded(){
+    for(let pass=0;pass<2;pass++){
+      await nextTick();if(!expanded.value)return;
+      const machine=document.querySelector('.machine'),board=document.querySelector('.viewport');
+      if(!machine||!board)return;
+      const machineRect=machine.getBoundingClientRect(),boardRect=board.getBoundingClientRect();
+      const width=window.visualViewport?.width??window.innerWidth,height=window.visualViewport?.height??window.innerHeight;
+      const sideControls=window.matchMedia('(pointer:coarse)').matches&&width>=600&&width>height&&height<=520;
+      const chromeHeight=machineRect.height-boardRect.height,chromeWidth=machineRect.width-boardRect.width;
+      expandedWidth.value=Math.max(140,Math.min(width-(sideControls?340:24),Math.max(80,height-76-chromeHeight)*1.2+chromeWidth));
+    }
+  }
+  async function toggleExpanded(){
+    closeLanguageMenu();
+    if(!expanded.value)previousScroll=window.scrollY;
+    expanded.value=!expanded.value;
+    document.body.classList.toggle('game-expanded',expanded.value);
+    if(expanded.value)await sizeExpanded();else{await nextTick();window.scrollTo(0,previousScroll)}
+    focus();
+  }
   function setLanguage(code){
     if(!languages.some(option=>option.code===code))return;
     language.value=code;
     try{localStorage.setItem(LANGUAGE_KEY,code)}catch{/* Keep the in-memory choice. */}
+    closeLanguageMenu();
     if(['playing','entering','transition'].includes(mode.value))focus();
+    else void nextTick(()=>languageMenuButton.value?.focus({preventScroll:true}));
+    if(expanded.value)void sizeExpanded();
   }
   watch(language,()=>{
     document.documentElement.lang=language.value;
@@ -68,19 +122,27 @@ createApp({setup(){
   function release(){clearInterval(holdTimer);holdTimer=null}
   const directions={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],KeyW:[0,-1],KeyS:[0,1],KeyA:[-1,0],KeyD:[1,0]};
   function keydown(e){
-    if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName))return;
+    if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.isComposing)return;
+    if(e.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]'))return;
+    if(languageKey(e))return;
+    const key=e.key.toLowerCase();
+    if(key==='l'){e.preventDefault();if(!e.repeat)void toggleLanguageMenu();return}
+    if(key==='z'){e.preventDefault();if(!e.repeat)toggleSound();return}
+    if(key==='f'){e.preventDefault();if(!e.repeat)void toggleExpanded();return}
+    if(languageMenuOpen.value){if(directions[e.code])e.preventDefault();return}
+    if(e.key==='Escape'&&expanded.value){e.preventDefault();void toggleExpanded();return}
+    if(e.code==='KeyP'||e.code==='Escape'){e.preventDefault();if(!e.repeat)togglePause();return}
+    if(e.code==='KeyR'){e.preventDefault();if(!e.repeat)restart();return}
     if(e.target.tagName==='BUTTON'&&!e.target.classList.contains('title-screen'))return;
     if(mode.value==='ready'&&(e.code==='Space'||e.code==='Enter')){e.preventDefault();if(!e.repeat)start();return}
     if(['entering','transition'].includes(mode.value)&&(directions[e.code]||e.code==='Space')){e.preventDefault();return}
     if(directions[e.code]){e.preventDefault();if(!e.repeat){held={code:e.code,dir:directions[e.code],at:performance.now()+160};move(...held.dir)}return}
     if(e.code==='Space'){e.preventDefault();if(!e.repeat)fire()}
     if(e.repeat)return;
-    if(e.code==='KeyP'||e.code==='Escape'){e.preventDefault();togglePause()}
-    if(e.code==='KeyR'){e.preventDefault();restart()}
     if(e.code==='Enter'){e.preventDefault();if(mode.value==='paused')resume();else if(mode.value==='won')next();else if(mode.value==='dead')retry();else if(mode.value==='ready')start()}
   }
   function keyup(e){if(held?.code===e.code)held=null}
-  function blur(){held=null;release();audio.stop();if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&lives.value>0)){pausedFrom=mode.value;mode.value='paused'}}
+  function blur(){closeLanguageMenu(false,false);held=null;release();audio.stop();if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&lives.value>0)){pausedFrom=mode.value;mode.value='paused'}}
   function visibility(){if(document.hidden)blur()}
   function connectivity(){online.value=navigator.onLine}
   function beforeInstall(e){e.preventDefault();installPrompt.value=e}
@@ -113,11 +175,12 @@ createApp({setup(){
     ctx=canvas.value.getContext('2d');reset();timer=requestAnimationFrame(frame);
     window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',blur);document.addEventListener('visibilitychange',visibility);
     window.addEventListener('online',connectivity);window.addEventListener('offline',connectivity);window.addEventListener('beforeinstallprompt',beforeInstall);window.addEventListener('appinstalled',installed);
+    document.addEventListener('pointerdown',outsideControls);window.addEventListener('resize',sizeExpanded);window.visualViewport?.addEventListener('resize',sizeExpanded);
     if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
       if(reg.waiting)notice.value='notice.update';
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)notice.value='notice.update'})});
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
-  onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',connectivity);window.removeEventListener('offline',connectivity);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed)});
-  return{language,languages,setLanguage,t,plural,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',connectivity);window.removeEventListener('offline',connectivity);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
+  return{language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onLanguagePickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');

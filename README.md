@@ -74,7 +74,9 @@ Nejsou to závislosti běžící ve hře. Hosting žádný Node server nevyžadu
 
 ## Jazyky a texty
 
-V hlavičce přepínej **CS / EN**. Výchozí jazyk je čeština jako v projektu
+Vpravo nahoře otevři ikonou zeměkoule nabídku **Čeština / English** nebo stiskni
+**L**. Šipky nahoru/dolů vybírají jazyk, Enter jej potvrdí, Escape nabídku zavře.
+Otevřená nabídka rozehranou hru dočasně pozastaví. Výchozí jazyk je čeština jako v projektu
 [SMG](https://github.com/pkristofik49/SMG); volba se ukládá do `flappy.language`.
 Přepnutí zachová místnost i její stav a okamžitě přeloží otevřené hlášky.
 Bez dostupného localStorage funguje volba po dobu aktuální relace.
@@ -100,7 +102,7 @@ Oba jazyky i manifesty se ukládají do offline cache.
 
 ## Zvuk
 
-Zapni tlačítko **Zvuk vypnutý / Sound off** pod herní plochou. Volba se ukládá
+Zvuk přepíná ikona reproduktoru vpravo nahoře nebo klávesa **Z**. Volba se ukládá
 do `flappy.sound`. Po opětovném otevření se zvuk zapojí až při interakci hráče,
 nikoli automatickým přehráváním při načtení stránky.
 
@@ -111,6 +113,13 @@ rekonstrukci, nikoli nahrávky či přesnou emulaci zvukové rutiny originálu.
 Web Audio je součástí prohlížeče; další knihovny ani soubory se zvukem nejsou
 potřeba. Vypnutí zvuku zastaví i rozeznělé efekty. Při pauze nebo přepnutí okna
 se zvuk zastaví. Hra funguje i při nedostupném nebo blokovaném audio rozhraní.
+
+## Zvětšené zobrazení
+
+Ikona čtyř rohů vpravo nahoře nebo **F** rozšíří hru přes celé okno, stejně jako
+v SMG. **F / Escape** vrátí běžné rozložení. Ovládací ikony zůstanou dostupné,
+na mobilu se plocha přizpůsobí výšce i otočení zařízení včetně dotykových tlačítek.
+Zkratky L / Z / F nereagují při psaní do vstupních polí ani s modifikačními klávesami.
 
 ## Verze při commitu
 

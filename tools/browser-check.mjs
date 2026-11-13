@@ -13,6 +13,13 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(expression){for(let i=0;i<80;i++){if(await evaluate(expression))return;await delay(100)}throw Error('Timed out: '+expression)}
 async function screenshot(file){const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});fs.mkdirSync('test-results',{recursive:true});fs.writeFileSync('test-results/'+file,Buffer.from(r.data,'base64'))}
 const titleReady=`document.querySelector('#app') && !document.querySelector('#app').hasAttribute('v-cloak') && document.querySelector('.title-screen img')?.complete && document.querySelector('.title-screen img')?.naturalWidth===288`;
+async function chooseLanguage(code){
+ if(await evaluate(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')!=='true'`))await evaluate(`document.querySelector('.language-menu-toggle').click()`);
+ await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);
+ await evaluate(`document.querySelector('[data-language="${code}"]').click()`);
+ await until(`document.documentElement.lang==='${code}' && document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='false' && getComputedStyle(document.querySelector('#language-options')).display==='none'`);
+}
+async function press(code,key,extra={}){await call('Input.dispatchKeyEvent',{type:'keyDown',code,key,...extra});await call('Input.dispatchKeyEvent',{type:'keyUp',code,key})}
 try{
  await call('Runtime.enable');await call('Page.enable');await call('Network.enable');
  instrumentId=(await call('Page.addScriptToEvaluateOnNewDocument',{source:`
@@ -28,10 +35,26 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
  await call('Page.navigate',{url:testUrl});
  await until(titleReady);
- await evaluate(`document.querySelector('[data-language="cs"]').click()`);
+ await chooseLanguage('cs');
  await until(`document.documentElement.lang==='cs'`);
  assert.equal(await evaluate('window.__flappyAudioContexts.length'),0,'Page loading must not initialize audio');
  assert.match(await evaluate(`document.querySelector('footer strong').textContent`),/FLAPPY v\d+\.\d{3}/);
+ for(const [selector,shortcut]of [['.language-menu-toggle','L'],['.sound-button','Z'],['.fullscreen-button','F']])assert.equal(await evaluate(`document.querySelector('${selector}').getAttribute('aria-keyshortcuts')`),shortcut);
+ await press('KeyL','l');await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);
+ await until(`document.activeElement?.dataset.language==='cs'`);
+ await press('ArrowDown','ArrowDown');assert.equal(await evaluate(`document.activeElement.dataset.language`),'en');
+ await press('Enter','Enter');await until(`document.documentElement.lang==='en' && document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='false'`);
+ assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready','Menu Enter must not start the game');
+ await chooseLanguage('cs');
+ await press('KeyF','f');await until(`document.querySelector('.application').classList.contains('expanded-mode')`);
+ assert.equal(await evaluate(`document.querySelector('.fullscreen-button').getAttribute('aria-pressed')`),'true');
+ await press('KeyL','l');await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);
+ await press('Escape','Escape');await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='false'`);
+ assert.equal(await evaluate(`document.querySelector('.application').classList.contains('expanded-mode')`),true,'Escape closes language options before leaving expanded view');
+ await press('Escape','Escape');await until(`!document.querySelector('.application').classList.contains('expanded-mode')`);
+ const soundBeforeShortcut=await evaluate(`document.querySelector('.sound-button').getAttribute('aria-pressed')`);
+ await press('KeyZ','z');await until(`document.querySelector('.sound-button').getAttribute('aria-pressed')!=='${soundBeforeShortcut}'`);
+ await press('KeyZ','z');await until(`document.querySelector('.sound-button').getAttribute('aria-pressed')==='${soundBeforeShortcut}'`);
  await screenshot('desktop.png');
  await delay(1200);
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),'6:00','The loading picture must not start the clock');
@@ -72,7 +95,7 @@ try{
  // A notice already on screen must translate immediately, without a new game.
  await evaluate(`document.querySelector('.fire').click()`);
  await until(`document.querySelector('.notice').textContent.includes('Nejdřív')`);
- await evaluate(`document.querySelector('[data-language="en"]').click()`);
+ await chooseLanguage('en');
  await until(`document.documentElement.lang==='en' && document.querySelector('.notice').textContent.includes('Collect a mushroom')`);
  assert.equal(await evaluate(`document.querySelector('.title-screen')===null`),true,'Switching language must preserve the game');
  assert.match(await evaluate(`document.querySelector('canvas').getAttribute('aria-label')`),/Game board/);
@@ -81,11 +104,11 @@ try{
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'KeyP',key:'p'});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'KeyP',key:'p'});
  await until(`document.querySelector('.overlay h2')?.textContent==='PAUSED'`);
- await evaluate(`document.querySelector('[data-language="cs"]').click()`);
+ await chooseLanguage('cs');
  await until(`document.querySelector('.overlay h2')?.textContent==='PAUZA'`);
  assert.match(await evaluate(`document.querySelector('.notice').textContent`),/Nejdřív/);
  for(const language of ['cs','en']){
-  await evaluate(`document.querySelector('[data-language="${language}"]').click()`);
+  await chooseLanguage(language);
   await until(`document.documentElement.lang==='${language}'`);
   for(const width of [320,390,768,1440]){
    await call('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<768});
@@ -94,9 +117,9 @@ try{
  }
  await screenshot('english.png');
  // Persist sound-on with a real pointer gesture, then verify its safe restoration.
- const soundEnabled=await evaluate(`document.querySelectorAll('.machine-controls button')[2].getAttribute('aria-pressed')==='true'`);
+ const soundEnabled=await evaluate(`document.querySelector('.sound-button').getAttribute('aria-pressed')==='true'`);
  async function clickSound(){
-  const point=await evaluate(`(()=>{const button=document.querySelectorAll('.machine-controls button')[2];button.scrollIntoView({block:'center'});const r=button.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+  const point=await evaluate(`(()=>{const button=document.querySelector('.sound-button');button.scrollIntoView({block:'center'});const r=button.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);
   await call('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});
   await call('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});
  }
@@ -109,20 +132,22 @@ try{
  assert.equal(await evaluate('document.documentElement.lang'),'en','Language must survive an offline reload');
  assert.equal(await evaluate('window.__flappyAudioContexts.length'),0,'Restored sound-on must wait for interaction');
  assert.match(await evaluate(`document.querySelector('.title-prompt').textContent`),/CLICK OR PRESS/);
- assert.match(await evaluate(`document.querySelectorAll('.machine-controls button')[2].textContent`),/Sound on/);
+ assert.match(await evaluate(`document.querySelector('.sound-button').getAttribute('aria-label')`),/Sound on/);
  assert.equal(await evaluate(`fetch(document.querySelector('#pwa-manifest').href).then(r=>r.json()).then(m=>m.lang)`),'en');
  // Space on a language button changes language without accidentally starting.
+ await evaluate(`document.querySelector('.language-menu-toggle').click()`);
+ await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);
  await evaluate(`document.querySelector('[data-language="cs"]').focus()`);
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'Space',key:' '});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'Space',key:' '});
  await until(`document.documentElement.lang==='cs'`);
  assert.equal(await evaluate(`!!document.querySelector('.title-screen')`),true);
- await evaluate(`document.querySelector('[data-language="en"]').click();document.querySelector('.title-screen').focus()`);
+ await chooseLanguage('en');await evaluate(`document.querySelector('.title-screen').focus()`);
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'Space',key:' '});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'Space',key:' '});
  await until(`document.querySelector('canvas').dataset.state==='playing' && window.__flappyAudioContexts.length===1 && window.__flappyOscillators.length>0`);
  await clickSound();
- await until(`document.querySelectorAll('.machine-controls button')[2].getAttribute('aria-pressed')==='false'`);
+ await until(`document.querySelector('.sound-button').getAttribute('aria-pressed')==='false'`);
  assert.equal(await evaluate(`localStorage.getItem('flappy.sound')`),'false');
  // Render every effect through real Web Audio and check the resulting samples.
  const audible=await evaluate(`(async()=>{
@@ -181,6 +206,25 @@ try{
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),previousLives-1,'One death must consume exactly one life');
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),'6:00');
+ // Expanding and global settings must preserve a live game at every tested size.
+ await press('KeyF','f');await until(`document.querySelector('.application').classList.contains('expanded-mode')`);
+ for(const [width,height,coarse]of [[1440,1100,false],[390,844,true],[320,568,true],[844,390,true]]){
+  await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:coarse});
+  await call('Emulation.setTouchEmulationEnabled',{enabled:coarse});
+  await delay(150);
+  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.machine').getBoundingClientRect();return r.top>=63 && r.bottom<=innerHeight && r.left>=0 && r.right<=innerWidth})()`),true,`Expanded game must fit ${width}x${height}`);
+  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.global-controls').getBoundingClientRect();return r.top>=0&&r.right<=innerWidth})()`),true);
+ }
+ await screenshot('expanded-mobile.png');
+ await press('KeyL','l');await until(`document.querySelector('canvas').dataset.state==='paused'`);
+ const settingsPause=await evaluate(`document.querySelector('canvas').toDataURL()`);await delay(200);
+ assert.equal(await evaluate(`document.querySelector('canvas').toDataURL()`),settingsPause,'Language choices must pause the active game');
+ await press('Escape','Escape');await until(`document.querySelector('canvas').dataset.state==='playing'`);
+ await press('KeyF','f');await until(`!document.querySelector('.application').classList.contains('expanded-mode')`);
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+ await call('Emulation.setTouchEmulationEnabled',{enabled:false});
+ await evaluate(`document.querySelectorAll('.machine-controls button')[1].click()`);
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
  // The final life must end the game instead of starting another entry.
  for(let remaining=previousLives-1;remaining>0;remaining--){
   for(const code of ['ArrowRight','ArrowRight','ArrowRight','ArrowRight','ArrowDown','ArrowDown','ArrowDown','ArrowDown','ArrowLeft','ArrowLeft','ArrowLeft']){
@@ -197,5 +241,5 @@ try{
  await until(`document.querySelector('canvas').dataset.state==='entering'`);
  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),5);
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
- assert.deepEqual(errors,[]);console.log('Browser OK: integrated pixel HUD, all five lives, automatic gate entry, pause, game over/new game, title controls, CS/EN, offline operation, sound and crushed enemies.');
+ assert.deepEqual(errors,[]);console.log('Browser OK: icon toolbar, L/Z/F/Escape shortcuts, keyboard language menu, expanded layouts, preserved game state, integrated HUD, life entry, CS/EN, offline operation, sound and crushed enemies.');
 }finally{if(instrumentId)await call('Page.removeScriptToEvaluateOnNewDocument',{identifier:instrumentId}).catch(()=>{});await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(()=>{});ws.close()}
