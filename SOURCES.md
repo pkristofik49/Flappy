@@ -46,6 +46,11 @@ Rozdrcení nepřátelé používají původní zploštělé bitmapy 12 × 8 pixe
 duch na adrese `0x2731`, žába `0x2952` v paměťovém obrazu FLAPPY2k.
 Zůstávají viditelní 600 ms herního času; padající předmět po jejich zmizení
 pokračuje dolů. Jde o novou implementaci časování, nikoli emulaci originálu.
+Zmáčknutý Flappy používá další původní bitmapu 12 × 8 pixelů na adrese
+`0x25db`. Zobrazuje se v dolní polovině postavy po střetu s nepřítelem nebo
+pádu kamene či vejce; smrtelný předmět sestoupí nad tělo. Moderní režim zploští
+příslušný směrový sprite krtka. Prodleva před dalším životem či koncem hry je
+720 ms a zastaví se při pauze. Jde o nové časování webové implementace.
 Úvodní obrazovka `assets/title-screen.png` je z původního Flappy od VBG Software
 (1987), podle výslovného výběru uživatele. Jde o beze změn uložený obrázek
 [Vbg_flappy_3.png z PMD 85 Infoserveru](https://pmd85.borik.net/w/images/b/bc/Vbg_flappy_3.png)

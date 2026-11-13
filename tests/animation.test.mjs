@@ -5,6 +5,12 @@ import {playerSprite,playerPose,enemySprite} from '../src/render.js';
 import {sprites} from '../assets/game-data.js';
 
 const empty=()=>new Game({walls:[],objects:[]});
+test('Flappy uses the native flattened 12 by 8 bitmap at the bottom of his cell after death',()=>{
+ const game=empty();game.die('death.enemy');
+ const pose=playerPose(game.player);
+ assert.equal(pose.data,sprites.playerCrushed);assert.equal(pose.data.length,16);
+ assert.deepEqual({width:pose.width,height:pose.height,x:pose.x,y:pose.y},{width:2,height:8,x:0,y:8});
+});
 const directions=[['left',-1,0],['right',1,0],['up',0,-1],['down',0,1]];
 
 test('Walking cycles through directional poses with their full native dimensions',()=>{

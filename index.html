@@ -50,14 +50,14 @@
                 <img src="./assets/title-screen.png" width="288" height="256" :alt="t('game.titleImage')" fetchpriority="high" draggable="false">
                 <span class="title-prompt">{{ t('game.startPrompt') }} <kbd>{{ t('key.space') }}</kbd></span>
               </button>
-              <div v-if="mode === 'paused' || (mode === 'dead' && !lives) || mode === 'won'" class="overlay">
+              <div v-if="mode === 'paused' || (mode === 'dead' && !lives && deathReady) || mode === 'won'" class="overlay">
                 <template v-if="mode === 'paused'"><span class="overlay-kicker">{{ t('pause.kicker') }}</span><h2>{{ t('pause.title') }}</h2><button class="primary" @click="resume">{{ t('action.resume') }} ↵</button></template>
                 <template v-if="mode === 'dead'"><span class="overlay-kicker">{{ t(lives ? 'death.tryKicker' : 'death.overKicker') }}</span><h2>{{ t(lives ? 'death.tryTitle' : 'death.overTitle') }}</h2><p>{{ message ? t(message) : '' }}</p><button class="primary" @click="retry">{{ t(lives ? 'action.retry' : 'action.newGame') }} ↵</button></template>
                 <template v-if="mode === 'won'"><span class="overlay-kicker">{{ t('win.kicker') }}</span><h2>{{ t('win.title') }}</h2><p>{{ t('win.scene', {scene}) }}{{ scene === 200 ? ' ' + t('win.finished') : '' }}</p><button class="primary" @click="next">{{ t(scene === 200 ? 'action.fromStart' : 'action.next') }} ↵</button></template>
               </div>
             </div>
           </div>
-          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','transition','paused'].includes(mode)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button></div>
+          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','transition','paused'].includes(mode) && !(mode === 'dead' && !deathReady)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button></div>
           <div class="touch-controls" :aria-label="t('touch.label')"><div class="dpad"><button class="up" :aria-label="t('direction.up')" @pointerdown.prevent="hold(0,-1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↑</button><button class="left" :aria-label="t('direction.left')" @pointerdown.prevent="hold(-1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">←</button><button class="down" :aria-label="t('direction.down')" @pointerdown.prevent="hold(0,1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↓</button><button class="right" :aria-label="t('direction.right')" @pointerdown.prevent="hold(1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">→</button></div><button class="fire" @click="fire">{{ t('action.fire') }}<br><small>{{ t('action.fireObject') }}</small></button></div>
         </section>
         <aside>

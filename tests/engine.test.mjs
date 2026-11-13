@@ -114,7 +114,21 @@ test('A falling stone cannot be crushed by a horizontal push',()=>{
  assert.ok(g.rocks.includes(stone));
 });
 test('A falling stone crushes the player',()=>{
- const g=new Game(level([{type:3,x:5,y:1}]));g.player.x=5;g.player.y=3;g.tick();assert.equal(g.state,'dead');
+ for(const type of [2,3]){
+  const g=new Game(level([{type,x:5,y:1}]));g.player.x=5;g.player.y=3;g.tick();
+  assert.equal(g.state,'dead');assert.equal(g.reason,'death.falling');assert.equal(g.player.crushed,true);
+  assert.equal(g.player.walking,false);assert.equal(g.rocks.find(r=>r.x===5).y,2,'The stone descends above the flattened player');
+  const dead=JSON.stringify(g);g.tick();g.move(1,0);g.fire();assert.equal(JSON.stringify(g),dead,'Death freezes the room until a new life enters');
+ }
+});
+
+test('Both walking into an enemy and an enemy walking into Flappy leave a flattened player',()=>{
+ for(const type of [4,5]){
+  const g=new Game(level([{type,x:3,y:1}]));g.move(1,0);
+  assert.equal(g.state,'dead');assert.equal(g.reason,'death.enemy');assert.equal(g.player.crushed,true);assert.equal(g.player.walking,false);
+  const h=new Game(level([{type,x:3,y:1}]));h.enemies[0].dx=-1;h.ticks=4;h.random=()=>1;h.tick();
+  assert.equal(h.state,'dead');assert.equal(h.player.crushed,true);
+ }
 });
 test('A falling stone or egg leaves a flattened enemy, waits, then continues falling',()=>{
  for(const rockType of [2,3])for(const enemyType of [4,5]){

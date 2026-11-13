@@ -216,6 +216,11 @@ try{
  await until(`document.querySelector('canvas').dataset.state==='dead'`);
  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),previousLives-1);
  assert.equal(await evaluate(`document.querySelector('.overlay')===null`),true,'A remaining life must re-enter automatically');
+ await screenshot('player-crushed.png');
+ await press('KeyP','p');await until(`document.querySelector('canvas').dataset.state==='paused'`);
+ const pausedDeath=await evaluate(`document.querySelector('canvas').toDataURL()`);await delay(850);
+ assert.equal(await evaluate(`document.querySelector('canvas').toDataURL()`),pausedDeath,'Pause must freeze the flattened player and re-entry delay');
+ await press('KeyP','p');await until(`document.querySelector('canvas').dataset.state==='dead'`);
  await until(`document.querySelector('canvas').dataset.state==='entering'`);
  await delay(270);await screenshot('life-entry.png');
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
@@ -248,6 +253,10 @@ try{
   }
   await until(`document.querySelector('canvas').dataset.state==='dead'`);
   assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),remaining-1);
+  if(remaining===1){
+   assert.equal(await evaluate(`document.querySelector('.overlay')===null`),true,'The final crushed player must be visible before game over');
+   await delay(200);assert.equal(await evaluate(`document.querySelector('.overlay')===null`),true);
+  }
   if(remaining>1)await until(`document.querySelector('canvas').dataset.state==='playing'`);
  }
  await until(`document.querySelector('.overlay h2')?.textContent==='GAME OVER'`);

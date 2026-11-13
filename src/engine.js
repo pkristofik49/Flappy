@@ -33,7 +33,7 @@ export class Game {
   wallAt(a){if(a.x<0||a.y<0||a.x+a.w>WIDTH||a.y+a.h>HEIGHT)return true;for(let y=a.y;y<a.y+a.h;y++)for(let x=a.x;x<a.x+a.w;x++)if(this.walls.has(`${x},${y}`))return true;return false}
   rockAt(a,except){return this.rocks.find(r=>r!==except&&intersects(a,r))}
   blocked(a,except){return this.wallAt(a)||Boolean(this.rockAt(a,except))}
-  die(reason){if(this.state==='playing'){this.state='dead';this.reason=reason}}
+  die(reason){if(this.state==='playing'){this.state='dead';this.reason=reason;this.player.crushed=true;this.player.walking=false}}
   move(dx,dy){
     if(this.state!=='playing')return false;
     const p=this.player;
@@ -89,7 +89,7 @@ export class Game {
       }
       // The flattened creature briefly supports the stone before disappearing.
       if(this.corpses.some(corpse=>intersects(dest,corpse)))continue;
-      if(intersects(dest,this.player)){this.die('death.falling');return}
+      if(intersects(dest,this.player)){rock.y=dest.y;rock.falling=true;this.die('death.falling');return}
       const crushed=this.enemies.filter(e=>intersects(dest,e));
       if(crushed.length){
         for(const enemy of crushed)this.corpses.push({type:enemy.type,x:enemy.x,y:enemy.y+1,w:2,h:1,crushed:true,life:CRUSH_TICKS});

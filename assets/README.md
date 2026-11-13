@@ -56,6 +56,7 @@ zvětšené čtyřikrát bez vyhlazování. Řádky shora:
 8. Žába dolů — postoj / skok.
 9. Duch vlevo / vpravo.
 10. Rozdrcený duch / žába — původní zploštělé bitmapy 12 × 8 pixelů.
+11. Zmáčknutý Flappy — původní bitmapa 12 × 8 pixelů na adrese `0x25db`.
 
 Přehled je pouze náhled pro prohlížení; hra vykresluje přímo pole bitmap.
 Po úpravě snímků ho obnov příkazem `node tools/sprite-sheet.mjs`.

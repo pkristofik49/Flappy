@@ -40,6 +40,10 @@ ani service worker.
   automaticky sestoupí do místnosti dočasným otvorem ve zdi. Zeď se zavře až
   za ním. Během nástupu stojí čas i objekty v místnosti; pauza zastaví i nástup.
   Po vyčerpání životů se zobrazí konec hry s možností nové hry.
+  Po zásahu nepřítelem nebo padajícím kamenem zůstane Flappy přibližně
+  0,72 sekundy zmáčknutý na místě smrti. V původních režimech se používá původní
+  12 × 8 sprite, v moderním zploštělý krtek. Teprve potom nastoupí další život
+  nebo se zobrazí konec hry. Pauza zastaví i tuto prodlevu.
 - Po vyřešení místnosti Flappy třikrát zabliká, plochu zaplní zdivo a následně
   se odkryje další sektor. Přechod i nástup jsou automatické; životy se zachovají.
   Pauza zastaví i tento přechod. Po sektoru 200 se zobrazí závěrečné vítězství.

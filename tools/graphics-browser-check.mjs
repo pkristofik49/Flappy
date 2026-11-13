@@ -46,6 +46,27 @@ try{
  const atlas=await evaluate(`import('./src/graphics.js').then(async m=>{const a=await m.loadModernSprites(),c=document.createElement('canvas');c.width=a.image.naturalWidth;c.height=a.image.naturalHeight;const ctx=c.getContext('2d');ctx.drawImage(a.image,0,0);const alphas=[];for(let y=0;y<4;y++)for(let x=0;x<4;x++)alphas.push(ctx.getImageData(Math.floor(x*c.width/4),Math.floor(y*c.height/4),1,1).data[3]);return{width:c.width,height:c.height,frames:a.frames,alphas}})`);
  assert.equal(atlas.frames.length,16);assert.ok(atlas.frames.every(f=>f.width>100&&f.height>100&&f.x>=0&&f.y>=0&&f.x+f.width<=atlas.width&&f.y+f.height<=atlas.height));
  assert.ok(atlas.alphas.every(alpha=>alpha===0),'Sprite gutters must be transparent without pale rectangles');
+ const deaths=await evaluate(`(async()=>{
+  const {Game}=await import('./src/engine.js'),{render,HUD_HEIGHT}=await import('./src/render.js'),{loadModernSprites}=await import('./src/graphics.js');
+  const atlas=await loadModernSprites(),results=[],strip=document.createElement('canvas');strip.width=288;strip.height=320;
+  const preview=strip.getContext('2d');preview.imageSmoothingEnabled=false;
+  for(const [column,mode]of ['mono','color','modern'].entries())for(const [row,cause]of ['enemy','falling'].entries()){
+   const game=new Game({walls:[],objects:cause==='enemy'?[{type:5,x:3,y:1}]:[{type:3,x:5,y:1}]});
+   if(cause==='enemy')game.move(1,0);else{game.player.x=5;game.player.y=3;game.tick()}
+   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),scale=mode==='modern'?4:1;
+   render(ctx,game,undefined,undefined,null,{mode,atlas});
+   const x=game.player.x*6,y=HUD_HEIGHT+game.player.y*8;
+   const shown=ctx.getImageData(x*scale,y*scale,12*scale,16*scale).data;
+   preview.drawImage(canvas,(x-6)*scale,(y-16)*scale,24*scale,40*scale,column*96,row*160,96,160);
+   render(ctx,game,undefined,undefined,null,{mode,atlas,showDeadPlayer:false});
+   const hidden=ctx.getImageData(x*scale,y*scale,12*scale,16*scale).data;
+   let upper=0,lower=0;for(let i=0;i<shown.length;i++)if(shown[i]!==hidden[i]){if(i<12*scale*8*scale*4)upper++;else lower++}
+   results.push({mode,cause,reason:game.reason,upper,lower});
+  }
+  return{results,image:strip.toDataURL()};
+ })()`);
+ assert.ok(deaths.results.every(r=>r.reason==='death.'+r.cause&&r.upper===0&&r.lower>0),'Both death causes must show only the flattened bottom half in every style');
+ saveImage('player-deaths-all-styles.png',deaths.image);
  assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'paused');
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),time);
  await choose('mono');assert.equal(await width(),240);assert.equal(await board(),before,'Changing all three styles must preserve the paused world exactly');

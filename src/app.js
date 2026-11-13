@@ -7,6 +7,7 @@ import {GameAudio,SOUND_KEY,loadSound} from './audio.js';
 import {LevelTransition} from './transition.js';
 import {GRAPHICS_KEY,graphicsModes,loadGraphics,loadModernSprites} from './graphics.js';
 const STORAGE='flappy-pmd85-progress-v1';
+const DEATH_MS=720;
 function loadProgress(){try{const p=JSON.parse(localStorage.getItem(STORAGE));return {unlocked:Math.max(1,Math.min(200,Math.floor(Number(p?.unlocked)||1))),scene:Math.max(1,Math.min(200,Math.floor(Number(p?.scene)||1)))}}catch{return{unlocked:1,scene:1}}}
 createApp({setup(){
   const language=ref(loadLanguage());
@@ -15,6 +16,7 @@ createApp({setup(){
   const progress=loadProgress();const canvas=ref(null),scene=ref(Math.min(progress.scene,progress.unlocked)),selectedScene=ref(scene.value),unlocked=ref(progress.unlocked);
   const mode=ref('ready'),lives=ref(5),ammo=ref(0),remaining=ref(360),sound=ref(loadSound()),online=ref(navigator.onLine),installPrompt=ref(null),message=ref(''),notice=ref('');
   const transitionPhase=ref('');
+  const deathReady=ref(false);
   const languageMenuOpen=ref(false),languagePicker=ref(null),languageMenuButton=ref(null);
   const graphics=ref(loadGraphics()),graphicsMenuOpen=ref(false),graphicsPicker=ref(null),graphicsMenuButton=ref(null),graphicsReady=ref(false);
   let modernAtlas=null;
@@ -38,7 +40,7 @@ createApp({setup(){
     const picker=kind==='graphics'?graphicsPicker:languagePicker;
     if(opened.value){closeMenus(true);return}
     closeMenus();
-    menuPaused=['playing','entering','transition'].includes(mode.value);
+    menuPaused=['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value);
     if(menuPaused)togglePause();
     opened.value=true;
     await nextTick();
@@ -107,12 +109,12 @@ createApp({setup(){
     paint();
   },{immediate:true});
   function save(savedScene=scene.value){try{localStorage.setItem(STORAGE,JSON.stringify({scene:savedScene,unlocked:unlocked.value}))}catch{notice.value='notice.storage'}}
-  function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});remaining.value=360;elapsed=0;deathElapsed=0;ammo.value=0;held=null;release();paint()}
-  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas})}
+  function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
+  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,showDeadPlayer:!deathReady.value})}
   function focus(){canvas.value?.focus({preventScroll:true})}
   function start(){transition=null;transitionPhase.value='';notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
   function resume(){mode.value=pausedFrom;held=null;last=performance.now();focus()}
-  function togglePause(){if(['playing','entering','transition'].includes(mode.value)){pausedFrom=mode.value;mode.value='paused';held=null;release();audio.stop()}else if(mode.value==='paused')resume()}
+  function togglePause(){if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value)){pausedFrom=mode.value;mode.value='paused';held=null;release();audio.stop()}else if(mode.value==='paused')resume()}
   function restart(){start()}
   function retry(){if(!lives.value)lives.value=5;start()}
   function next(){if(scene.value===200){scene.value=1;lives.value=5}else scene.value++;selectedScene.value=scene.value;start()}
@@ -134,7 +136,7 @@ createApp({setup(){
       notice.value=scene.value===200?'win.finished':'notice.nextRoom';
       unlocked.value=Math.max(unlocked.value,Math.min(200,scene.value+1));save(Math.min(200,scene.value+1));held=null;release();
     }
-    if(game.state==='dead'&&mode.value==='playing'){lives.value=Math.max(0,lives.value-1);message.value=game.reason;notice.value=game.reason;mode.value='dead';deathElapsed=0;held=null;release();beep('dead')}
+    if(game.state==='dead'&&mode.value==='playing'){lives.value=Math.max(0,lives.value-1);message.value=game.reason;notice.value=game.reason;mode.value='dead';deathElapsed=0;deathReady.value=false;held=null;release();beep('dead')}
     paint();
   }
   function move(dx,dy){if(mode.value!=='playing')return;game.move(dx,dy);sync()}
@@ -161,10 +163,10 @@ createApp({setup(){
     if(directions[e.code]){e.preventDefault();if(!e.repeat){held={code:e.code,dir:directions[e.code],at:performance.now()+160};move(...held.dir)}return}
     if(e.code==='Space'){e.preventDefault();if(!e.repeat)fire()}
     if(e.repeat)return;
-    if(e.code==='Enter'){e.preventDefault();if(mode.value==='paused')resume();else if(mode.value==='won')next();else if(mode.value==='dead')retry();else if(mode.value==='ready')start()}
+    if(e.code==='Enter'){e.preventDefault();if(mode.value==='paused')resume();else if(mode.value==='won')next();else if(mode.value==='dead'&&deathReady.value)retry();else if(mode.value==='ready')start()}
   }
   function keyup(e){if(held?.code===e.code)held=null}
-  function blur(){closeMenus(false,false);held=null;release();audio.stop();if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&lives.value>0)){pausedFrom=mode.value;mode.value='paused'}}
+  function blur(){closeMenus(false,false);held=null;release();audio.stop();if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value)){pausedFrom=mode.value;mode.value='paused'}}
   function visibility(){if(document.hidden)blur()}
   function connectivity(){online.value=navigator.onLine}
   function beforeInstall(e){e.preventDefault();installPrompt.value=e}
@@ -172,7 +174,10 @@ createApp({setup(){
   async function install(){const prompt=installPrompt.value;if(!prompt)return;await prompt.prompt();await prompt.userChoice;installPrompt.value=null}
   function frame(){
     const now=performance.now(),delta=Math.min(now-last,250);
-    if(mode.value==='dead'&&lives.value>0&&!document.hidden){deathElapsed+=delta;if(deathElapsed>=720)start()}
+    if(mode.value==='dead'&&!deathReady.value&&!document.hidden){
+      deathElapsed+=delta;
+      if(deathElapsed>=DEATH_MS){deathReady.value=true;if(lives.value>0)start();else paint()}
+    }
     else if(mode.value==='transition'){
       const result=transition.advance(delta);transitionPhase.value=transition.phase;
       if(result.loadNext){scene.value++;selectedScene.value=scene.value;reset({entering:true});save()}
@@ -205,5 +210,5 @@ createApp({setup(){
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
   onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',connectivity);window.removeEventListener('offline',connectivity);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
-  return{graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  return{deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');

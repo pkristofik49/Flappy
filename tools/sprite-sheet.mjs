@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import {bitmap,playerPose,enemySprite} from '../src/render.js';
-const scale=4,cellWidth=26,cellHeight=32,width=cellWidth*4*scale,height=cellHeight*10*scale;
+const scale=4,cellWidth=26,cellHeight=32,width=cellWidth*4*scale,height=cellHeight*11*scale;
 const pixels=Buffer.alloc(width*height*4);
 for(let i=0;i<pixels.length;i+=4)pixels.set([8,11,8,255],i);
 const ctx={fillStyle:'#eef0e5',fillRect(x,y,w,h){
@@ -17,8 +17,9 @@ for(let row=0;row<4;row++)for(let frame=0;frame<4;frame++)draw(playerPose({dx:di
 for(let row=0;row<4;row++)for(let frame=0;frame<2;frame++)draw(enemySprite({type:'frog',dx:directions[row][0],dy:directions[row][1],sleep:0,stepTick:frame?0:undefined},0),frame,row+4);
 for(let i=0;i<2;i++)draw(enemySprite({type:'ghost',dx:i?1:-1,dy:0,sleep:0},0),i,8);
 for(const [col,type]of ['ghost','frog'].entries())draw(enemySprite({type,crushed:true},0),col,9);
+draw(playerPose({crushed:true}),0,10);
 ctx.fillStyle='#363c31';
-for(let row=1;row<10;row++)ctx.fillRect(0,row*cellHeight,width/scale,1);
+for(let row=1;row<11;row++)ctx.fillRect(0,row*cellHeight,width/scale,1);
 const raw=Buffer.alloc((width*4+1)*height);
 for(let y=0;y<height;y++)pixels.copy(raw,y*(width*4+1)+1,y*width*4,(y+1)*width*4);
 function chunk(name,data){

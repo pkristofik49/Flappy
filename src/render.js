@@ -28,6 +28,7 @@ export function playerSprite(player){
   return walkingSprites[direction][player.walking?player.walkFrame:0];
 }
 export function playerPose(player){
+  if(player.crushed)return {data:sprites.playerCrushed,width:2,height:8,x:0,y:8};
   const data=playerSprite(player);
   const width=data.length/16;
   // Native side-step frames span three PMD cells, including the previous position.
@@ -131,7 +132,10 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
   }
   const p=game.player;
   const pose=playerPose(p);
-  if(!transition||transition.playerVisible){if(atlas)modernSprite(ctx,atlas,modernPlayerFrame(p),p.x*6,p.y*8,12,16);else bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height,palette.player)}
+  if((!transition||transition.playerVisible)&&(game.state!=='dead'||graphics.showDeadPlayer!==false)){
+    if(atlas)modernSprite(ctx,atlas,modernPlayerFrame(p),p.x*6,p.y*8+pose.y,12,pose.height);
+    else bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height,palette.player);
+  }
   for(const s of game.shots){if(atlas)modernSprite(ctx,atlas,15,s.x*6,s.y*8,6,7);else bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8,palette.mushroom)}
   if(transition)for(let i=transition.firstCoveredCell;i<transition.firstCoveredCell+transition.coveredCells;i++){
     const x=(i%40)*6,y=Math.floor(i/40)*8;
