@@ -15,6 +15,36 @@ test('Horizontal push moves a stone, a blocked ordinary stone breaks',()=>{
 test('The objective egg cannot be destroyed against a wall',()=>{
  const g=new Game({walls:[[5,1]],objects:[{type:2,x:3,y:1},{type:6,x:3,y:21}]});assert.equal(g.move(1,0),false);assert.equal(g.rocks.length,1);
 });
+
+test('Holding a direction after pushing a stone off a ledge does not delete it',()=>{
+ const g=new Game(level([{type:3,x:3,y:1}],[[6,2]]));
+ const stone=g.rocks.find(r=>!r.egg);
+ assert.equal(g.move(1,0),true);
+ g.tick();
+ assert.equal(stone.y,2);
+ assert.equal(g.move(1,0),false);
+ assert.ok(g.rocks.includes(stone));
+ assert.equal(stone.x,4);
+});
+
+test('Touching the corner of a stone cannot push or break it',()=>{
+ for(const walls of [[],[[5,3]]]){
+  const g=new Game(level([{type:3,x:3,y:3}],walls));
+  g.player.y=2;
+  const stone=g.rocks.find(r=>!r.egg);
+  assert.equal(g.move(1,0),false);
+  assert.ok(g.rocks.includes(stone));
+  assert.equal(stone.x,3);
+ }
+});
+
+test('A falling stone cannot be crushed by a horizontal push',()=>{
+ const g=new Game(level([{type:3,x:3,y:3}],[[5,3]]));
+ g.player.y=3;
+ const stone=g.rocks.find(r=>!r.egg);stone.falling=true;
+ assert.equal(g.move(1,0),false);
+ assert.ok(g.rocks.includes(stone));
+});
 test('A falling stone crushes the player',()=>{
  const g=new Game(level([{type:3,x:5,y:1}]));g.player.x=5;g.player.y=3;g.tick();assert.equal(g.state,'dead');
 });

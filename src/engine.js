@@ -26,7 +26,10 @@ export class Game {
     if(this.wallAt(target))return false;
     const rock=this.rockAt(target);
     if(rock){
-      if(!dx)return false;
+      // After a stone drops, a held direction can still touch its upper corner.
+      // Only a full side contact with a resting stone is a push or crush.
+      const touchingSide=dx>0?p.x+p.w===rock.x:p.x===rock.x+rock.w;
+      if(!dx||p.y!==rock.y||!touchingSide||rock.falling)return false;
       const dest={...rock,x:rock.x+dx};
       if(this.blocked(dest,rock)){
         if(!rock.egg){this.rocks.splice(this.rocks.indexOf(rock),1);this.event='break'}
