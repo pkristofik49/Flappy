@@ -36,7 +36,7 @@ ani service worker.
 - Životy, sektor a čas jsou vykreslené přímo v horním zdivu herního Canvasu.
   Pod nápisem SEKTOR je za každou nasbíranou houbu jedna její ikona. Po výstřelu
   ikona zmizí. Počet hub ani doplňkový slogan se pod herní plochou nezobrazují.
-  Zbývající kuřátka stojí v řadě. Po smrti Flappy krátce počká a další kuřátko
+  Zbývající životy stojí v řadě. Po smrti Flappy krátce počká a další postava
   automaticky sestoupí do místnosti dočasným otvorem ve zdi. Zeď se zavře až
   za ním. Během nástupu stojí čas i objekty v místnosti; pauza zastaví i nástup.
   Po vyčerpání životů se zobrazí konec hry s možností nové hry.
@@ -128,10 +128,12 @@ Zkratky L / Z / F nereagují při psaní do vstupních polí ani s modifikační
 Ikona palety v horním menu nebo **G** otevře výběr:
 
 - **Originál ČB** — dosavadní původní pixely, výchozí režim.
-- **Originál barevný** — stejné bitmapy s barevnou paletou; kuře je žluté,
+- **Originál barevný** — stejné bitmapy s barevnou paletou; Flappy je žlutý,
   žába zelená, duch fialový a cílové vejce tyrkysové.
 - **Moderní barevný** — nové kreslené sprity z `assets/modern-sprites.png`,
   vykreslované do Canvasu 960 × 800 místo původních 240 × 200 pixelů.
+  Flappy má podobu krtka s růžovým čumákem a hrabavými tlapkami; zdi tvoří
+  červené cihly se střídavě posunutými spárami.
 
 Šipky vybírají položku, Enter potvrdí a Escape zavře nabídku. Volba se ukládá
 do `flappy.graphics`. Otevřená nabídka dočasně pozastaví běžící hru; změna stylu

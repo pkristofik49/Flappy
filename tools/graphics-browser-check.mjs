@@ -22,7 +22,7 @@ const width=()=>evaluate(`document.querySelector('canvas').width`);
 const board=()=>evaluate(`document.querySelector('canvas').toDataURL()`);
 function saveImage(name,data){fs.mkdirSync('test-results',{recursive:true});fs.writeFileSync('test-results/'+name,Buffer.from(data.split(',')[1],'base64'))}
 try{
- await call('Runtime.enable');await call('Page.enable');await call('Network.enable');
+ await call('Runtime.enable');await call('Page.enable');await call('Network.enable');await call('Network.setBypassServiceWorker',{bypass:false});
  const url=process.argv[2]||'http://127.0.0.1:4173/Flappy/';
  await call('Storage.clearDataForOrigin',{origin:new URL(url).origin,storageTypes:'service_workers,cache_storage'});
  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
@@ -43,8 +43,9 @@ try{
  await choose('color');assert.notEqual(await board(),before);saveImage('original-colour.png',await board());
  await choose('modern');assert.equal(await width(),960);assert.equal(await evaluate(`document.querySelector('canvas').height`),800);
  saveImage('modern-board.png',await board());
- const atlas=await evaluate(`import('./src/graphics.js').then(async m=>{const a=await m.loadModernSprites();return{width:a.image.naturalWidth,height:a.image.naturalHeight,frames:a.frames}})`);
+ const atlas=await evaluate(`import('./src/graphics.js').then(async m=>{const a=await m.loadModernSprites(),c=document.createElement('canvas');c.width=a.image.naturalWidth;c.height=a.image.naturalHeight;const ctx=c.getContext('2d');ctx.drawImage(a.image,0,0);const alphas=[];for(let y=0;y<4;y++)for(let x=0;x<4;x++)alphas.push(ctx.getImageData(Math.floor(x*c.width/4),Math.floor(y*c.height/4),1,1).data[3]);return{width:c.width,height:c.height,frames:a.frames,alphas}})`);
  assert.equal(atlas.frames.length,16);assert.ok(atlas.frames.every(f=>f.width>100&&f.height>100&&f.x>=0&&f.y>=0&&f.x+f.width<=atlas.width&&f.y+f.height<=atlas.height));
+ assert.ok(atlas.alphas.every(alpha=>alpha===0),'Sprite gutters must be transparent without pale rectangles');
  assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'paused');
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),time);
  await choose('mono');assert.equal(await width(),240);assert.equal(await board(),before,'Changing all three styles must preserve the paused world exactly');

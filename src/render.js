@@ -72,14 +72,25 @@ function brick(ctx,x,y){
 const palettes={
   mono:{background:'#000',wall:'#bfc5b9',player:'#eef0e5',rock:'#eef0e5',egg:'#eef0e5',frog:'#dfe7d5',ghost:'#dfe7d5',mushroom:'#eef0e5',sleep:'#6f7c60',goal:'#fafcf3',goalLine:'#5e6a51',text:'#eef0e5',credit:'#aab2a2'},
   color:{background:'#000',wall:'#ef7777',player:'#ffe85c',rock:'#dddbe6',egg:'#64dcff',frog:'#72e06a',ghost:'#eb8fff',mushroom:'#ffe85c',sleep:'#687c9a',goal:'#64dcff',goalLine:'#226c9f',text:'#fff0ae',credit:'#72e06a'},
-  modern:{background:'#121c29',wall:'#4b6275',text:'#f4e8bb',credit:'#9bbdba',goal:'#57dec8',goalLine:'#176c68'}
+  modern:{background:'#121c29',wall:'#a95239',text:'#f4e8bb',credit:'#9bbdba',goal:'#57dec8',goalLine:'#176c68'}
 };
 function wall(ctx,x,y,palette,modern){
   ctx.fillStyle=palette.wall;
   if(!modern){brick(ctx,x,y);return}
-  ctx.beginPath();ctx.roundRect(x+.15,y+.15,5.7,7.7,.65);ctx.fill();
-  ctx.fillStyle='#6b8391';ctx.fillRect(x+.8,y+.6,4.4,.45);
-  ctx.fillStyle='#263b4d';ctx.fillRect(x+.6,y+6.9,4.8,.5);
+  // Two courses of long clay bricks, with half-brick staggered mortar joints.
+  // Clip each native cell so adjacent cells form a continuous masonry pattern.
+  ctx.save();ctx.beginPath();ctx.rect(x,y,6,8);ctx.clip();
+  ctx.fillStyle='#49312c';ctx.fillRect(x,y,6,8);
+  for(let row=0;row<2;row++){
+    const top=y+row*4,offset=row*3;
+    for(let left=x-offset;left<x+6;left+=6){
+      const shade=Math.abs(Math.floor(left/3+top/4))%3;
+      ctx.fillStyle=['#a95239','#b35c40','#9e4835'][shade];ctx.fillRect(left+.25,top+.3,5.5,3.4);
+      ctx.fillStyle='#d18158';ctx.fillRect(left+.45,top+.45,5.1,.3);
+      ctx.fillStyle='#773b2e';ctx.fillRect(left+.45,top+3.25,5.1,.3);
+    }
+  }
+  ctx.restore();
 }
 function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translations.cs['game.scene'],timeLabel=translations.cs['game.time'],credit=translations.cs['game.boardCredit']}={},palette=palettes.mono,atlas=null){
   for(let x=0;x<CANVAS_WIDTH;x+=6)wall(ctx,x,0,palette,atlas);

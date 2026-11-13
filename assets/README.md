@@ -4,24 +4,26 @@
 
 [modern-sprites.png](modern-sprites.png) je samostatný atlas 1254 × 1254 pixelů
 s průhledným pozadím. Nová grafika vznikla vestavěným nástrojem **imagegen**;
-přesný použitý prompt je uložen v [modern-prompt.txt](modern-prompt.txt).
+přesný prompt úpravy na krtka je uložen v [modern-mole-prompt.txt](modern-mole-prompt.txt).
 PNG je uložený beze změn, včetně alfa kanálu. Nejde o bitmapy z historické hry.
 
 Atlas má 4 × 4 buňky. Jejich pořadí zleva doprava:
 
 | Řádek | Snímky |
 | --- | --- |
-| 1 | Kuře vlevo postoj / krok, vpravo postoj / krok |
-| 2 | Kuře dolů postoj / krok, nahoru postoj / krok |
+| 1 | Krtek vlevo postoj / krok, vpravo postoj / krok |
+| 2 | Krtek dolů postoj / krok, nahoru postoj / krok |
 | 3 | Žába vlevo, vpravo, dolů, nahoru |
 | 4 | Duch vlevo, hladké vejce, kámen, houba |
 
 `src/graphics.js` ořízne při načtení pouze průhledné okraje buněk pro vykreslení;
 zdrojové PNG nemění. Duch se zrcadlí při pohybu doprava, skoky žáby používají
 její směrové snímky a krátké zvednutí. Mrtvolka používá zploštění příslušného
-spritu. Kuře střídá dva kreslené snímky pro každý směr.
+spritu. Krtek s růžovým čumákem a hrabavými tlapkami střídá dva kreslené snímky
+pro každý směr; zadní pohled ukazuje záda bez obličeje.
 Moderní režim renderuje plochu v rozlišení 960 × 800 se zachováním stejné
-herní mřížky a kolizí. Zdivo je kreslené přes Canvas s jemnými hranami.
+herní mřížky a kolizí. Zdivo je kreslené přes Canvas jako červené cihly ve dvou
+řadách na buňku, s půlcihlovým posunem svislých spár a světlou horní hranou.
 
 ## Původní režimy
 

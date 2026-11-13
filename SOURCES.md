@@ -2,7 +2,7 @@
 
 Nový režim **Moderní barevný** používá samostatné AI generované ilustrace
 v `assets/modern-sprites.png` (vestavěný imagegen). Přesný prompt a pořadí
-snímků jsou v `assets/modern-prompt.txt` a `assets/README.md`. Jde o novou
+snímků jsou v `assets/modern-mole-prompt.txt` a `assets/README.md`. Jde o novou
 grafiku tohoto projektu, která nenahrazuje historická data.
 Režim **Originál barevný** obarvuje stávající bitmapy paletou zvolenou pro web.
 Barevné varianty PMD jsou doložené na [stránce autora FLAPPY2k](https://www.pmd85.cz/?page_id=965);
@@ -55,8 +55,8 @@ v rozlišení 288 × 256 pixelů. SHA256 PNG:
 Rozložení životů, sektoru a času v horním zdivu vychází z uživatelem zadaného
 [snímku původní herní plochy](https://pmd85.borik.net/w/images/5/54/Vbg_flappy_2.png).
 Ukazatele jsou součástí herního Canvasu, s pixelovým písmem na mřížce 6 × 8
-a původními bitmapami kuřátek. Nástup života otevírá dvě buňky horní stěny,
-nechá kuřátko sestoupit z řady a průchod znovu uzavře. Časování je nově
+a původními bitmapami postavy. Nástup života otevírá dvě buňky horní stěny,
+nechá Flappyho sestoupit z řady a průchod znovu uzavře. Časování je nově
 implementované; herní souřadnice a data všech 200 scén se nemění.
 Přechod mezi sektory nově napodobuje popsané chování originálu: bliknutí
 Flappyho, zaplnění místnosti zdivem a odkrytí další scény. Délky fází a
