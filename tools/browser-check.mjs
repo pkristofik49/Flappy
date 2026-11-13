@@ -39,6 +39,8 @@ try{
  await until(`document.documentElement.lang==='cs'`);
  assert.equal(await evaluate('window.__flappyAudioContexts.length'),0,'Page loading must not initialize audio');
  assert.match(await evaluate(`document.querySelector('footer strong').textContent`),/FLAPPY v\d+\.\d{3}/);
+ const typography=await evaluate(`['.machine-controls button','.notice','.guide p'].map(selector=>{const s=getComputedStyle(document.querySelector(selector));return{size:s.fontSize,family:s.fontFamily}})`);
+ assert.ok(typography.every(style=>style.size==='15px'&&style.family===typography[0].family),'Controls and descriptive text must share readable 15px interface typography');
  for(const [selector,shortcut]of [['.language-menu-toggle','L'],['.sound-button','Z'],['.fullscreen-button','F']])assert.equal(await evaluate(`document.querySelector('${selector}').getAttribute('aria-keyshortcuts')`),shortcut);
  await press('KeyL','l');await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);
  await until(`document.activeElement?.dataset.language==='cs'`);

@@ -10,6 +10,10 @@ test('All six display choices restore valid preferences and provide historical t
 test('Platform bitmaps retain their source dimensions and RGB pixels',()=>{
  for(const mode of retroModes)for(const [name,frame]of Object.entries(retroSet(mode))){assert.equal(frame.pixels.length,frame.width*frame.height,mode+': '+name);assert.ok(frame.pixels.every(pixel=>Number.isInteger(pixel)&&pixel>=0&&pixel<=0xffffff));assert.ok(frame.pixels.some(Boolean))}
  assert.ok(retroSet('nes').BLUE_BALL.pixels.includes(0x0000a8),'Dark NES blue must remain opaque');
+ for(const name of ['RED_BALL','BLUE_BALL']){
+  const columns=retroSet('msx')[name].pixels.flatMap((pixel,i)=>pixel?[i%16]:[]);
+  assert.equal(Math.min(...columns),0);assert.equal(Math.max(...columns),15,'MSX stones must span the full original 16px width');
+ }
 });
 test('Every platform renders directional player and enemy animation, crushing and crumbling',()=>{
  for(const mode of retroModes){const set=retroSet(mode);

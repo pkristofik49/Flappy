@@ -12,8 +12,14 @@ směrových fází; původ, souřadnice importu a omezení jsou v [SOURCES.md](.
 - [title-nes.png](title-nes.png): původní titulní snímek NES, 256 × 224.
 
 Úvod PC se vykresluje lokálně přes Canvas z krtka, krystalu a přeloženého titulku.
-PMD 85-1 používá beze změn obrázek VBG; PMD-85-3 tentýž snímek barevně tónuje
-překryvem CSS. Všechny podklady jsou dostupné i v offline cache.
+PMD 85-1 používá beze změn obrázek VBG; PMD-85-3 používá původní snímek
+remasteru [title-pmd85-3.gif](title-pmd85-3.gif), 576 × 512, stažený beze změn
+z [Title2.gif na stránce autora](https://www.pmd85.cz/wp-content/uploads/Title2.gif).
+Všechny podklady jsou dostupné i v offline cache.
+
+MSX kameny se importují v celé původní velikosti 16 × 16 pixelů: běžný kámen
+ze souřadnic `(144,64)` a cílový ze `(184,32)` herního snímku. Levé čtyři sloupce
+se zachovávají; výřez už není useknutý a obsahuje plný obrys.
 
 ## PC
 

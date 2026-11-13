@@ -25,7 +25,7 @@ msx.RED_WALL=extract(msxImage,0,24,8,8);
 msx.BLUE_WALL=recolor(msx.RED_WALL,{[0x40e8f0]:0x5050e8});
 msx.CHICKEN_RIGHT_1=extract(msxImage,8,32);
 msx.CHICKEN_LEFT_1={...msx.CHICKEN_RIGHT_1,pixels:msx.CHICKEN_RIGHT_1.pixels.map((_,i)=>msx.CHICKEN_RIGHT_1.pixels[Math.floor(i/16)*16+15-i%16])};
-msx.RED_BALL=extract(msxImage,148,64);msx.BLUE_BALL=extract(msxImage,188,32);
+msx.RED_BALL=extract(msxImage,144,64);msx.BLUE_BALL=extract(msxImage,184,32);
 msx.RED_DOWN_1=extract(msxImage,168,96);msx.BLUE_LEFT_1=extract(msxImage,72,64);msx.BLUE_LEFT_2=msx.BLUE_LEFT_1;
 msx.BLUE_RIGHT_1={...msx.BLUE_LEFT_1,pixels:msx.BLUE_LEFT_1.pixels.map((_,i)=>msx.BLUE_LEFT_1.pixels[Math.floor(i/16)*16+15-i%16])};msx.BLUE_RIGHT_2=msx.BLUE_RIGHT_1;
 msx.MUSHROOM=extract(msxImage,16,168,8,8);

@@ -31,8 +31,10 @@ Reprodukovatelný import: do adresáře vlož `sharp-Images.js`, `sharp-Intro.js
 `sharp-Font.js`, `msx-game.png` a `nes-game.png` z uvedených podkladů a spusť
 `node tools/import-platform-assets.mjs cesta/k/podkladum`. Pomocný PNG dekodér
 čte pouze obrazová data a nevyžaduje balíčky. MSX/NES titulní PNG se kopírují
-beze změn. Úvod PC se skládá z již používaných lokálních spritů a překladů,
-PMD-85-3 barevně tónuje původní obrázek VBG pomocí CSS, bez změny jeho souboru.
+beze změn. Úvod PC se skládá z již používaných lokálních spritů a překladů.
+PMD-85-3 používá původní [snímek úvodu FLAPPY2k Remaster Edition](https://www.pmd85.cz/wp-content/uploads/Title2.gif)
+ze [stránky autora](https://www.pmd85.cz/?page_id=965), uložený beze změn
+v `assets/title-pmd85-3.gif` (576 × 512). PMD 85-1 nadále používá obrázek VBG.
 
 ## PMD a PC
 

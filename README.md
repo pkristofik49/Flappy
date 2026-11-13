@@ -159,11 +159,14 @@ herních kroků zůstávají beze změny; původní režimy používají krokov�
 do `flappy.graphics`. Otevřená nabídka dočasně pozastaví běžící hru; změna stylu
 zachová pozice, čas, životy i houby. Všech šest režimů funguje offline po prvním
 načtení. Úvod se mění podle volby: PMD 85-1 zachovává původní snímek VBG,
-PMD-85-3 jej barevně tónuje, Sharp zobrazuje rekonstrukci původní úvodní scény,
+PMD-85-3 používá barevný úvod FLAPPY2k Remaster Edition, Sharp rekonstrukci původní úvodní scény,
 MSX a NES původní titulní snímky a PC novou kompozici s krtkem a krystalem.
 Nové historické režimy vykreslují mřížku do 320 × 200 pixelů. Jde o grafické
 varianty současných 200 sektorů; podrobnosti o převzatých a odvozených snímcích
 jsou v [SOURCES.md](SOURCES.md).
+Ovládání, průvodce a běžné texty používají jednotné systémové písmo Arial,
+převážně 15 px. Vedlejší popisky jsou 12–14 px a ovládací tlačítka mají výšku
+alespoň 40 px. Další fontové soubory ani knihovny nejsou potřeba.
 Žádná další knihovna není potřeba. Původ a přehled moderních spritů viz
 [assets/README.md](assets/README.md).
 

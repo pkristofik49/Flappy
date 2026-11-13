@@ -47,7 +47,7 @@
             <div class="viewport" :style="{ aspectRatio: String(gameAspect) }">
               <canvas ref="canvas" width="240" height="200" tabindex="0" :class="{ 'modern-graphics': graphics === 'modern' }" :data-graphics="graphics" :data-state="mode" :data-transition="transitionPhase || undefined" :aria-label="t('game.canvas')"></canvas>
               <button v-if="mode === 'ready'" class="title-screen" @click="start" :aria-label="t('game.start')">
-                <span class="title-art" :class="{ 'pmd-color-title': graphics === 'color' }"><img :src="titleScreen.src" :width="titleScreen.width" :height="titleScreen.height" :alt="t('game.titleImageMode', {version: t('graphics.' + graphics)})" fetchpriority="high" draggable="false"></span>
+                <span class="title-art"><img :src="titleScreen.src" :width="titleScreen.width" :height="titleScreen.height" :alt="t('game.titleImageMode', {version: t('graphics.' + graphics)})" fetchpriority="high" draggable="false"></span>
                 <span class="title-prompt">{{ t('game.startPrompt') }} <kbd>{{ t('key.space') }}</kbd></span>
               </button>
               <div v-if="mode === 'paused' || (mode === 'dead' && !lives && deathReady) || mode === 'won'" class="overlay">

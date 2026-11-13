@@ -2,7 +2,7 @@ export const GRAPHICS_KEY='flappy.graphics';
 export const graphicsModes=['mono','color','sharp','msx','nes','modern'];
 export const titleScreens={
  mono:{src:'./assets/title-screen.png',width:288,height:256},
- color:{src:'./assets/title-screen.png',width:288,height:256},
+ color:{src:'./assets/title-pmd85-3.gif',width:576,height:512},
  sharp:{src:'./assets/title-sharp.png',width:320,height:200},
  msx:{src:'./assets/title-msx.png',width:256,height:192},
  nes:{src:'./assets/title-nes.png',width:256,height:224}

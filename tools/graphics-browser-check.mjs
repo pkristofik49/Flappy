@@ -36,10 +36,10 @@ try{
  await key('KeyG','g');await until(`document.activeElement?.dataset.graphics==='mono'`);
  await key('ArrowDown');await key('Enter');await until(`document.querySelector('canvas').dataset.graphics==='color'`);
  assert.equal(await width(),240);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
- assert.equal(await evaluate(`document.querySelector('.title-screen img').getAttribute('src')`),title);
- for(const [mode,naturalWidth]of [['sharp',320],['msx',256],['nes',256],['modern',960]]){
+ assert.notEqual(await evaluate(`document.querySelector('.title-screen img').getAttribute('src')`),title,'PMD-85-3 uses its remaster title');
+ for(const [mode,naturalWidth]of [['color',576],['sharp',320],['msx',256],['nes',256],['modern',960]]){
   await choose(mode);await until(`document.querySelector('.title-screen img').complete && document.querySelector('.title-screen img').naturalWidth===${naturalWidth}`);
-  assert.equal(await width(),mode==='modern'?960:320);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
+  assert.equal(await width(),mode==='modern'?960:mode==='color'?240:320);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
   const clip=await evaluate(`(()=>{const r=document.querySelector('.viewport').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scale:1}})()`);
   saveImage('title-'+mode+'.png',`data:image/png;base64,${(await call('Page.captureScreenshot',{format:'png',clip,captureBeyondViewport:true})).data}`);
  }
