@@ -34,6 +34,8 @@ ani service worker.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
   postup se ukládají do localStorage na konkrétním zařízení/prohlížeči.
 - Životy, sektor a čas jsou vykreslené přímo v horním zdivu herního Canvasu.
+  Pod nápisem SEKTOR je za každou nasbíranou houbu jedna její ikona. Po výstřelu
+  ikona zmizí. Počet hub ani doplňkový slogan se pod herní plochou nezobrazují.
   Zbývající kuřátka stojí v řadě. Po smrti Flappy krátce počká a další kuřátko
   automaticky sestoupí do místnosti dočasným otvorem ve zdi. Zeď se zavře až
   za ním. Během nástupu stojí čas i objekty v místnosti; pauza zastaví i nástup.

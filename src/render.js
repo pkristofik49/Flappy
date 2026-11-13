@@ -2,6 +2,7 @@ import { sprites } from '../assets/game-data.js';
 import {translations} from './translations.js';
 import {pixelText} from './pixel-font.js';
 export const HUD_HEIGHT=24,CANVAS_WIDTH=240,CANVAS_HEIGHT=200;
+const mushroomSprite=[12,30,63,63,12,12,12,0];
 // Preserve the native head and body. Two opposing steps use a raised body
 // and alternate the planted foot; the in-between poses bring the feet together.
 function stride(base,phase){
@@ -74,6 +75,7 @@ function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translati
   const reserves=Math.max(0,Math.min(5,lives-(game.state==='dead'?0:1)));
   for(let i=0;i<reserves;i++)bitmap(ctx,sprites.front,6+(i+(game.entry?1:0))*12,8);
   pixelText(ctx,sectorLabel,78,8);pixelText(ctx,String(scene).padStart(3,'0'),138,8);
+  for(let i=0;i<game.ammo;i++)bitmap(ctx,mushroomSprite,78+i*8,16,1,8);
   pixelText(ctx,timeLabel,174,8);pixelText(ctx,timeText,210,8);
   pixelText(ctx,credit,174,16,'#aab2a2');
 }
@@ -85,7 +87,7 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
   ctx.fillStyle='#bfc5b9';
   for(const cell of game.walls){const [x,y]=cell.split(',').map(Number);brick(ctx,x*6,y*8)}
   if(game.goal){const{x,y}=game.goal;ctx.fillStyle='#fafcf3';ctx.fillRect(x*6,y*8,12,8);ctx.fillStyle='#5e6a51';for(let i=0;i<12;i+=2)ctx.fillRect(x*6+i,y*8,1,8)}
-  for(const m of game.mushrooms)bitmap(ctx,[12,30,63,63,12,12,12,0],m.x*6,m.y*8,1,8);
+  for(const m of game.mushrooms)bitmap(ctx,mushroomSprite,m.x*6,m.y*8,1,8);
   for(const r of game.rocks)bitmap(ctx,r.egg?targetEgg:sprites.rock,r.x*6,r.y*8);
   for(const e of [...game.enemies,...game.corpses]){
     const pose=enemySprite(e,game.ticks);

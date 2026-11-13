@@ -88,7 +88,9 @@ try{
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'Space',key:' '});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'Space',key:' '});
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
- assert.equal(await evaluate(`document.querySelector('.screen-bottom b').textContent`),'00');
+ assert.equal(await evaluate(`document.querySelector('.mushroom-count b').textContent`),'0');
+ assert.equal(await evaluate(`document.querySelector('.screen-bottom')`),null);
+ assert.equal(await evaluate(`document.querySelector('#scene option').textContent`),'Sektor 001');
  assert.equal(await evaluate(`document.querySelector('.notice').textContent.includes('Nejdřív')`),false,'Starting with space must not also fire');
  assert.equal(await evaluate(`navigator.onLine`),false);
  const cacheNames=await evaluate(`caches.keys()`);assert.ok(cacheNames.some(n=>n.startsWith('flappy-pmd85-')));
@@ -164,6 +166,19 @@ try{
   return results;
  })()`);
  assert.ok(Object.values(audible).every(rms=>rms>.0001),'Every effect must produce non-silent audio');
+ const mushrooms=await evaluate(`(async()=>{
+  const {Game}=await import('./src/engine.js');const {render}=await import('./src/render.js');
+  const board=document.createElement('canvas');board.width=240;board.height=200;
+  const ctx=board.getContext('2d'),strip=document.createElement('canvas');strip.width=960;strip.height=480;
+  const preview=strip.getContext('2d');preview.imageSmoothingEnabled=false;
+  const game=new Game({walls:[],objects:[{type:1,x:3,y:1},{type:1,x:4,y:1}]});
+  const counts=[];
+  function snapshot(index){render(ctx,game);const pixels=ctx.getImageData(72,16,90,8).data;counts.push(Array.from(pixels).filter((v,i)=>i%4===0&&v>0).length);preview.drawImage(board,0,0,240,24,0,index*96,960,96)}
+  snapshot(0);game.move(1,0);snapshot(1);game.move(1,0);snapshot(2);game.fire();snapshot(3);game.fire();snapshot(4);
+  return {counts,image:strip.toDataURL()};
+ })()`);
+ assert.deepEqual(mushrooms.counts,[0,24,48,24,0],'Collecting and firing must add/remove mushroom icons below SECTOR');
+ fs.writeFileSync('test-results/mushroom-hud.png',Buffer.from(mushrooms.image.split(',')[1],'base64'));
  const crushSequence=await evaluate(`(async()=>{
   const {Game,CRUSH_TICKS}=await import('./src/engine.js');
   const {render,HUD_HEIGHT,CANVAS_HEIGHT}=await import('./src/render.js');
