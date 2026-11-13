@@ -28,6 +28,14 @@ export class Game {
     if(this.wallAt(target))return false;
     const rock=this.rockAt(target);
     if(rock){
+      // Downward pressure crushes a supported ordinary stone without moving Flappy.
+      const touchingTop=dx===0&&dy>0&&p.x===rock.x&&p.y+p.h===rock.y;
+      if(touchingTop){
+        if(!rock.egg&&!rock.falling&&this.blocked({...rock,y:rock.y+1},rock)){
+          this.rocks.splice(this.rocks.indexOf(rock),1);this.event='break';
+        }
+        return false;
+      }
       // After a stone drops, a held direction can still touch its upper corner.
       // Only a full side contact with a resting stone is a push or crush.
       const touchingSide=dx>0?p.x+p.w===rock.x:p.x===rock.x+rock.w;

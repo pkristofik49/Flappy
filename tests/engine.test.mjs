@@ -46,6 +46,40 @@ test('Player cannot move through a wall or push vertically',()=>{
 test('Horizontal push moves a stone, a blocked ordinary stone breaks',()=>{
  const g=new Game(level([{type:3,x:3,y:1}],[[6,1]]));assert.equal(g.move(1,0),true);assert.equal(g.rocks.find(r=>!r.egg).x,4);assert.equal(g.move(1,0),false);assert.equal(g.rocks.filter(r=>!r.egg).length,0);
 });
+
+test('Pushing down breaks a resting stone supported by a wall or another stone',()=>{
+ for(const support of ['wall','stone']){
+  const g=new Game({walls:support==='wall'?[[5,5]]:[],objects:[{type:3,x:5,y:3},...(support==='stone'?[{type:3,x:5,y:5}]:[])]});
+  const stone=g.rocks[0];g.player.x=5;g.player.y=1;
+  assert.equal(g.move(0,1),false);
+  assert.ok(!g.rocks.includes(stone),support);
+  assert.equal(g.event,'break');
+  assert.deepEqual({x:g.player.x,y:g.player.y},{x:5,y:1});
+ }
+});
+
+test('Pressure from above preserves objective eggs, unsupported stones and falling stones',()=>{
+ for(const scenario of ['egg','unsupported','falling']){
+  const g=new Game({walls:scenario==='unsupported'?[]:[[5,5]],objects:[{type:scenario==='egg'?2:3,x:5,y:3}]});
+  const stone=g.rocks[0];stone.falling=scenario==='falling';
+  g.player.x=5;g.player.y=1;
+  assert.equal(g.move(0,1),false);
+  assert.ok(g.rocks.includes(stone),scenario);
+  assert.notEqual(g.event,'break');
+ }
+});
+
+test('Pressure from below or contact with an upper corner does not break a stone',()=>{
+ for(const player of [{x:5,y:5,dy:-1},{x:4,y:1,dy:1}]){
+  const g=new Game({walls:[],objects:[{type:3,x:5,y:3},{type:3,x:6,y:5}]});
+  // One cell of support leaves room for Flappy in the below-contact case.
+  if(player.dy<0)g.rocks[1].x=7;
+  g.player.x=player.x;g.player.y=player.y;
+  const stone=g.rocks[0];
+  assert.equal(g.move(0,player.dy),false);
+  assert.ok(g.rocks.includes(stone));
+ }
+});
 test('The objective egg cannot be destroyed against a wall',()=>{
  const g=new Game({walls:[[5,1]],objects:[{type:2,x:3,y:1},{type:6,x:3,y:21}]});assert.equal(g.move(1,0),false);assert.equal(g.rocks.length,1);
 });

@@ -41,7 +41,7 @@
         <aside>
           <div class="guide-heading"><span class="eyebrow">MALÝ PRŮVODCE</span><span>01—03</span></div>
           <article class="guide"><span class="step">01</span><div><h3>Vejce patří na podložku.</h3><p>Plné bílé vejce dostaň na cílovou podložku. Tečkované kameny slouží jako překážky a podpěry. Vejce i kameny padají dolů.</p></div></article>
-          <article class="guide"><span class="step">02</span><div><h3>Cestu si musíš promyslet.</h3><p>Kameny lze tlačit do stran. Obyčejný kámen rozbiješ přitlačením ke zdi. Označené vejce musí zůstat celé.</p></div></article>
+          <article class="guide"><span class="step">02</span><div><h3>Cestu si musíš promyslet.</h3><p>Kameny lze tlačit do stran. Obyčejný kámen rozbiješ tlakem proti překážce ze strany nebo shora. Bílé vejce musí zůstat celé.</p></div></article>
           <article class="guide"><span class="step">03</span><div><h3>Nejsi tu sám.</h3><p>Žáby a duchy uspíš nasbíranou houbou. Padající kámen je odstraní. Vyhýbej se jim i padajícím vejcím.</p></div></article>
           <div class="keys"><h3>Všechno pod palcem.</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>Pohyb / WASD</span></p><p><kbd class="space">MEZERNÍK</kbd><span>Vystřelit houbu</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>Pauza / opakovat</span></p></div>
           <div class="scene-picker"><label for="scene">Zpátky do místnosti</label><div><select id="scene" v-model.number="selectedScene"><option v-for="n in unlocked" :value="n">Scéna {{ String(n).padStart(3,'0') }}</option></select><button @click="chooseScene" aria-label="Otevřít vybranou místnost">↗</button></div><small>{{ unlocked }} / 200 ODEMČENO · POSTUP SE UKLÁDÁ</small></div>

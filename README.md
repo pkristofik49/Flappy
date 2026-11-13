@@ -25,8 +25,8 @@ ani service worker.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
-- Dostaň označené vzorované vejce na bílou podložku. Vejce i kameny padají,
-  běžné kameny lze rozbít tlakem proti překážce. Padající předměty drtí obludy
+- Dostaň plné bílé vejce na cílovou podložku. Vejce i kameny padají,
+  běžné kameny lze rozbít tlakem proti překážce ze strany nebo shora. Padající předměty drtí obludy
   i hráče. Houba nepřítele dočasně uspí.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
   postup se ukládají do localStorage na konkrétním zařízení/prohlížeči.
