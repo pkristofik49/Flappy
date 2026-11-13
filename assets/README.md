@@ -1,6 +1,6 @@
 # Herní grafika
 
-## Moderní barevný režim
+## PC
 
 [modern-sprites.png](modern-sprites.png) je samostatný atlas 1254 × 1254 pixelů
 s průhledným pozadím. Nová grafika vznikla vestavěným nástrojem **imagegen**;
@@ -20,8 +20,8 @@ Cílový předmět nově používá [modern-crystal.png](modern-crystal.png): hr
 modrý kámen s výraznými krystalickými ploškami. Jde o samostatný průhledný
 sprite vytvořený vestavěným imagegen; přesný prompt je v
 [modern-crystal-prompt.txt](modern-crystal-prompt.txt). Renderer jím nahrazuje
-druhou buňku posledního řádku atlasu. V původních režimech se vykresluje nová
-malá hranatá bitmapa krystalu, v ČB světlá a v barevném režimu modrá.
+druhou buňku posledního řádku atlasu. Režimy PMD 85-1 a PMD-85-3 opět používají
+předchozí původní obrys cílového kamene se světlou výplní, v barevném režimu modrý.
 
 `src/graphics.js` ořízne při načtení pouze průhledné okraje buněk pro vykreslení;
 zdrojové PNG nemění. Duch se zrcadlí při pohybu doprava, skoky žáby používají
@@ -36,7 +36,7 @@ Ukazatele používají vyhlazené systémové písmo Arial bez dalších fontov�
 žab a vznášení duchů se vykreslují na snímcích prohlížeče. Kolizní mřížka zůstává
 stejná. Při smrti se obraz zarovná s místem kolize, při pauze se hodiny animací zastaví.
 
-## Původní režimy
+## PMD 85-1 a PMD-85-3
 
 `title-screen.png` je původní úvodní obrazovka Flappy od VBG Software (1987),
 stažená beze změn ze [souboru Vbg_flappy_3.png na PMD 85 Infoserveru](https://pmd85.borik.net/w/images/b/bc/Vbg_flappy_3.png).
@@ -68,6 +68,11 @@ zvětšené čtyřikrát bez vyhlazování. Řádky shora:
 9. Duch vlevo / vpravo.
 10. Rozdrcený duch / žába — původní zploštělé bitmapy 12 × 8 pixelů.
 11. Zmáčknutý Flappy — původní bitmapa 12 × 8 pixelů na adrese `0x25db`.
+12. Dva původní snímky rozsypaného kamene, 12 × 16 pixelů, adresy `0x2607` a `0x2628`.
+
+Rozsypání v PMD režimech střídá tyto snímky. PC rozdělí běžný kámen do dvanácti
+úlomků, které klesají, rozestupují se a mizí. Efekty trvají šest herních kroků,
+jsou neškodné a při pauze stojí.
 
 Přehled je pouze náhled pro prohlížení; hra vykresluje přímo pole bitmap.
 Po úpravě snímků ho obnov příkazem `node tools/sprite-sheet.mjs`.

@@ -32,6 +32,7 @@ try{
  await evaluate(`localStorage.setItem('flappy.graphics','mono');localStorage.setItem('flappy.language','cs');localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:1,unlocked:1}))`);
  await call('Page.reload');await until(`document.querySelector('canvas')?.dataset.graphics==='mono'`);
  const title=await evaluate(`document.querySelector('.title-screen img').getAttribute('src')`);
+ assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#graphics-options button'),b=>b.textContent.trim())`),['PMD 85-1','PMD-85-3','PC']);
  await key('KeyG','g');await until(`document.activeElement?.dataset.graphics==='mono'`);
  await key('ArrowDown');await key('Enter');await until(`document.querySelector('canvas').dataset.graphics==='color'`);
  assert.equal(await width(),240);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
@@ -85,6 +86,31 @@ try{
  assert.equal(animation.unique,3);assert.equal(animation.unchanged,true);
  assert.ok(animation.mid.every(p=>p.moving&&(!Number.isInteger(p.x)||!Number.isInteger(p.y))),'Player, crystal, stone, frog, ghost and shot must all render between grid cells');
  saveImage('smooth-motion.png',animation.image);
+ const breaking=await evaluate(`(async()=>{
+  const {Game}=await import('./src/engine.js'),{render,HUD_HEIGHT}=await import('./src/render.js'),{Motion}=await import('./src/motion.js'),{sprites}=await import('./assets/game-data.js'),{loadModernSprites}=await import('./src/graphics.js');
+  const atlas=await loadModernSprites(),strip=document.createElement('canvas');strip.width=288;strip.height=512;const preview=strip.getContext('2d');preview.imageSmoothingEnabled=false;
+  const results=[],restored=[];
+  for(const [col,mode]of ['mono','color','modern'].entries()){
+   const g=new Game({walls:[[5,1]],objects:[{type:3,x:3,y:1}]}),motion=new Motion();motion.reset(g);
+   const board=document.createElement('canvas'),ctx=board.getContext('2d'),scale=mode==='modern'?4:1,images=[];
+   function snapshot(row){render(ctx,g,undefined,undefined,null,{mode,atlas,motion});images.push(board.toDataURL());preview.drawImage(board,18*scale,(HUD_HEIGHT+8)*scale,12*scale,16*scale,col*96,row*128,96,128)}
+   snapshot(0);g.move(1,0);motion.capture(g);g.tick();motion.advance(120);motion.capture(g);snapshot(1);
+   for(let i=0;i<2;i++){g.tick();motion.advance(120);motion.capture(g)}snapshot(2);
+   for(let i=0;i<3;i++){g.tick();motion.advance(120);motion.capture(g)}snapshot(3);
+   results.push({unique:new Set(images).size,cleared:g.debris.length===0});
+   if(mode!=='modern'){
+    const target=new Game({walls:[],objects:[{type:2,x:5,y:3}]});render(ctx,target,undefined,undefined,null,{mode});
+    const pixels=ctx.getImageData(30,HUD_HEIGHT+24,12,16).data;let matches=true;
+    for(let row=0;row<16;row++){const bits=sprites.egg[row*2]|(sprites.egg[row*2+1]<<6);let first=0,last=11;if(bits){while(!(bits&(1<<first)))first++;while(!(bits&(1<<last)))last--}
+     for(let x=0;x<12;x++)if((pixels[(row*12+x)*4]>0)!==Boolean(bits&&x>=first&&x<=last))matches=false;
+    }restored.push(matches);
+   }
+  }
+  return{results,restored,image:strip.toDataURL()};
+ })()`);
+ assert.ok(breaking.results.every(r=>r.unique===4&&r.cleared),'Every mode must show both crumble phases and clear all debris');
+ assert.deepEqual(breaking.restored,[true,true],'Both PMD modes must restore the previous target silhouette and fill');
+ saveImage('stone-breaking.png',breaking.image);
  assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'paused');
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),time);
  await choose('mono');assert.equal(await width(),240);assert.equal(await board(),before,'Changing all three styles must preserve the paused world exactly');

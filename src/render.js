@@ -2,6 +2,7 @@ import { sprites } from '../assets/game-data.js';
 import {translations} from './translations.js';
 import {pixelText} from './pixel-font.js';
 import {modernSprite,modernPlayerFrame,modernEnemyFrame} from './graphics.js';
+import {BREAK_TICKS} from './engine.js';
 export const HUD_HEIGHT=24,CANVAS_WIDTH=240,CANVAS_HEIGHT=200;
 const mushroomSprite=[12,30,63,63,12,12,12,0];
 // Preserve the native head and body. Two opposing steps use a raised body
@@ -49,13 +50,16 @@ export function enemySprite(enemy,ticks){
   return hopping?{data:pose.step,width:pose.width,height:pose.height,x:pose.x,y:pose.y,flip:false}
     :{data:pose.idle,width:2,height:16,x:0,y:0,flip:false};
 }
-// Angular faceted target crystal, distinct from the ordinary stippled boulder.
-const targetCrystal=[];
+// Retain the previous PMD outline and solid fill, distinct from stippled stones.
+const targetCrystal=sprites.egg.slice();
 for(let row=0;row<16;row++){
-  const edge=row<5?5-row:row>10?row-10:1;
-  let bits=((1<<(12-2*edge))-1)<<edge;
-  if(row>3&&row<12)bits&=~(1<<(4+Math.floor((row-4)/3)));
-  targetCrystal.push(bits&63,(bits>>6)&63);
+  const pixels=sprites.egg[row*2]|(sprites.egg[row*2+1]<<6);
+  if(!pixels)continue;
+  let first=0,last=11;
+  while(!(pixels&(1<<first)))first++;
+  while(!(pixels&(1<<last)))last--;
+  const solid=((1<<(last-first+1))-1)<<first;
+  targetCrystal[row*2]=solid&63;targetCrystal[row*2+1]=(solid>>6)&63;
 }
 export function bitmap(ctx,data,x,y,width=2,height=16,color='#eef0e5',flip=false){
   ctx.fillStyle=color;
@@ -129,6 +133,10 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
   if(game.goal){const{x,y}=game.goal;ctx.fillStyle=palette.goal;ctx.fillRect(x*6,y*8,12,8);ctx.fillStyle=palette.goalLine;for(let i=0;i<12;i+=2)ctx.fillRect(x*6+i,y*8,1,8)}
   for(const m of game.mushrooms){if(atlas)modernSprite(ctx,atlas,15,m.x*6,m.y*8,6,8);else bitmap(ctx,mushroomSprite,m.x*6,m.y*8,1,8,palette.mushroom)}
   for(const r of game.rocks){const position=visual(r);if(atlas)modernSprite(ctx,atlas,r.egg?13:14,position.x*6,position.y*8,12,16);else bitmap(ctx,r.egg?targetCrystal:sprites.rock,r.x*6,r.y*8,2,16,r.egg?palette.egg:palette.rock)}
+  for(const effect of game.debris){
+    if(atlas)rockFragments(ctx,atlas,effect,graphics.motion);
+    else bitmap(ctx,effect.age<BREAK_TICKS/2?sprites.rockBreak1:sprites.rockBreak2,effect.x*6,effect.y*8,2,16,palette.rock);
+  }
   for(const e of [...game.enemies,...game.corpses]){
     const pose=enemySprite(e,game.ticks);
     const position=visual(e);
@@ -153,5 +161,16 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
     wall(ctx,x,y,palette,atlas);
   }
   ctx.restore();
+  ctx.restore();
+}
+function rockFragments(ctx,atlas,effect,motion){
+  const progress=Math.min(1,(motion?.effectAge(effect)??effect.age)/BREAK_TICKS),frame=atlas.frames[14];
+  ctx.save();ctx.globalAlpha=1-progress;
+  for(let row=0;row<4;row++)for(let col=0;col<3;col++){
+    const drift=(col-1)*progress*2.5;
+    const fall=progress*progress*14+progress*row;
+    const size=4*(1-.45*progress);
+    ctx.drawImage(atlas.image,frame.x+col*frame.width/3,frame.y+row*frame.height/4,frame.width/3,frame.height/4,effect.x*6+col*4+drift,effect.y*8+row*4+fall,size,size);
+  }
   ctx.restore();
 }

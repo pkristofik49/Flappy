@@ -1,10 +1,10 @@
 # Původ dat a grafiky
 
-Nový režim **Moderní barevný** používá samostatné AI generované ilustrace
+Režim **PC** používá samostatné AI generované ilustrace
 v `assets/modern-sprites.png` (vestavěný imagegen). Přesný prompt a pořadí
 snímků jsou v `assets/modern-mole-prompt.txt` a `assets/README.md`. Jde o novou
 grafiku tohoto projektu, která nenahrazuje historická data.
-Režim **Originál barevný** obarvuje stávající bitmapy paletou zvolenou pro web.
+Režim **PMD-85-3** obarvuje stávající bitmapy paletou zvolenou pro web.
 Barevné varianty PMD jsou doložené na [stránce autora FLAPPY2k](https://www.pmd85.cz/?page_id=965);
 webové obarvení není emulací konkrétního hardwarového barevného režimu.
 
@@ -32,11 +32,15 @@ Herní mechanismy jsou nově implementovány: nejde o emulaci instrukcí PMD 85.
 Rychlost, AI nepřátel, střelba a okrajové kolize se mohou od originálu lišit.
 Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mřížce.
 Cílový předmět je modrý kámen / krystal. Původně importované bitmapy cílového
-a obyčejného kamene jsou stejné; web proto nyní používá odlišnou hranatou bitmapu
-krystalu, světlou v ČB a modrou v barevném režimu. Moderní krystal je nová
+a obyčejného kamene jsou stejné; oba PMD režimy zachovávají původní obrys
+se světlou výplní, která cíl odlišuje od tečkovaného běžného kamene.
+V PMD-85-3 má modrou barvu. Krystal v režimu PC je nová
 ilustrace vytvořená vestavěným imagegen v `assets/modern-crystal.png`, s přesným
 promptem v `assets/modern-crystal-prompt.txt`. Interní datové označení `egg`
 zůstalo kvůli kompatibilitě stávajících dat; v uživatelských textech je krystal.
+Rozsypání běžného kamene používá v PMD režimech původní bitmapy 12 × 16 na
+adresách `0x2607` a `0x2628`. PC animuje dvanáct výřezů z ilustrace běžného kamene.
+Doba šesti herních kroků a nekolizní efekty jsou webová implementace.
 Chůze vlevo a vpravo střídá původní klidové a rozšířené krokové bitmapy PMD
 bez programových úprav nohou. Chůze dolů používá původní čelní snímky a jednu
 odvozenou fázi; fáze chůze nahoru jsou odvozené z původní zadní bitmapy.

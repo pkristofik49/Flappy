@@ -1,10 +1,11 @@
 export const WIDTH = 40, HEIGHT = 22;
 export const CRUSH_TICKS = 5; // 600 ms of game time; paused together with the scene.
 export const ENTRY_TICKS = 8;
+export const BREAK_TICKS = 6;
 const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export class Game {
   constructor(level,{seed=12345,entering=false}={}) {
-    this.walls=new Set();this.rocks=[];this.enemies=[];this.corpses=[];this.mushrooms=[];this.shots=[];
+    this.walls=new Set();this.rocks=[];this.enemies=[];this.corpses=[];this.mushrooms=[];this.shots=[];this.debris=[];
     this.player={x:1,y:1,w:2,h:2,dx:1,dy:0,walking:false,walkFrame:0,walkTick:0};this.goal=null;this.ammo=0;this.state='playing';this.ticks=0;this.seed=seed;this.reason='';
     for(let x=0;x<WIDTH;x++){this.walls.add(`${x},0`);this.walls.add(`${x},${HEIGHT-1}`)}
     for(let y=0;y<HEIGHT;y++){this.walls.add(`0,${y}`);this.walls.add(`${WIDTH-1},${y}`)}
@@ -34,6 +35,11 @@ export class Game {
   rockAt(a,except){return this.rocks.find(r=>r!==except&&intersects(a,r))}
   blocked(a,except){return this.wallAt(a)||Boolean(this.rockAt(a,except))}
   die(reason){if(this.state==='playing'){this.state='dead';this.reason=reason;this.player.crushed=true;this.player.walking=false}}
+  breakRock(rock){
+    const index=this.rocks.indexOf(rock);if(rock.egg||index<0)return;
+    this.rocks.splice(index,1);
+    this.debris.push({x:rock.x,y:rock.y,age:0,life:BREAK_TICKS});this.event='break';
+  }
   move(dx,dy){
     if(this.state!=='playing')return false;
     const p=this.player;
@@ -47,7 +53,7 @@ export class Game {
       const touchingTop=dx===0&&dy>0&&p.x===rock.x&&p.y+p.h===rock.y;
       if(touchingTop){
         if(!rock.egg&&!rock.falling&&this.blocked({...rock,y:rock.y+1},rock)){
-          this.rocks.splice(this.rocks.indexOf(rock),1);this.event='break';
+          this.breakRock(rock);
         }
         return false;
       }
@@ -57,7 +63,7 @@ export class Game {
       if(!dx||p.y!==rock.y||!touchingSide||rock.falling)return false;
       const dest={...rock,x:rock.x+dx};
       if(this.blocked(dest,rock)){
-        if(!rock.egg){this.rocks.splice(this.rocks.indexOf(rock),1);this.event='break'}
+        if(!rock.egg)this.breakRock(rock);
         return false;
       }
       rock.x+=dx;this.event='push';
@@ -77,6 +83,7 @@ export class Game {
     if(this.state==='entering'){this.advanceEntry();return}
     if(this.state!=='playing')return;
     this.ticks++;
+    this.debris=this.debris.filter(effect=>{effect.age++;return --effect.life>0});
     this.corpses=this.corpses.filter(corpse=>--corpse.life>0);
     if(this.ticks-this.player.walkTick>=2)this.player.walking=false;
     for(const rock of [...this.rocks].sort((a,b)=>b.y-a.y)){

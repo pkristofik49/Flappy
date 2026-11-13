@@ -26,10 +26,13 @@ ani service worker.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
-- Dostaň modrý krystal na cílovou podložku. V ČB ho poznáš podle hranatého tvaru
-  a světlých plošek. Krystal i obyčejné kameny padají,
+- Dostaň modrý krystal na cílovou podložku. V režimu PMD 85-1 ho poznáš podle
+  světlé výplně. Krystal i obyčejné kameny padají,
   běžné kameny lze rozbít tlakem proti překážce ze strany nebo shora. Padající předměty drtí obludy
   i hráče. Houba nepřítele dočasně uspí.
+- Rozbitý obyčejný kámen se krátce rozsype. Režimy PMD používají dva původní
+  snímky, PC plynule padající úlomky. Efekt trvá přibližně 0,72 sekundy herního
+  času, při pauze stojí a neblokuje pohyb ani neubližuje postavám.
 - Rozdrcený nepřítel se krátce zobrazí zploštělý. Kámen nad ním počká přibližně
   0,6 sekundy herního času a po zmizení těla pokračuje v pádu; pauza časování zastaví.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
@@ -132,10 +135,10 @@ Zkratky L / Z / F nereagují při psaní do vstupních polí ani s modifikační
 
 Ikona palety v horním menu nebo **G** otevře výběr:
 
-- **Originál ČB** — dosavadní původní pixely, výchozí režim.
-- **Originál barevný** — stejné bitmapy s barevnou paletou; Flappy je žlutý,
+- **PMD 85-1** — dosavadní původní pixely, výchozí černobílý režim.
+- **PMD-85-3** — stejné bitmapy s barevnou paletou; Flappy je žlutý,
   žába zelená, duch fialový a cílový krystal modrý.
-- **Moderní barevný** — nové kreslené sprity z `assets/modern-sprites.png`,
+- **PC** — nové kreslené sprity z `assets/modern-sprites.png`,
   vykreslované do Canvasu 960 × 800 místo původních 240 × 200 pixelů.
   Flappy má podobu krtka s růžovým čumákem a hrabavými tlapkami; zdi tvoří
   červené cihly se střídavě posunutými spárami.
