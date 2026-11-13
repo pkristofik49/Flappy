@@ -41,13 +41,13 @@
       <div class="intro"><div><div class="eyebrow">{{ t('intro.eyebrow') }}</div><h1>{{ t('intro.titleFirst') }}<br>{{ t('intro.titleSecond') }}<span aria-hidden="true">.</span></h1></div><p>{{ t('intro.description') }}</p></div>
       <div class="game-layout">
         <section class="machine" :aria-label="t('game.label')">
-          <div class="machine-top"><span><i></i> {{ t('brand.machine') }}</span><span>{{ t('game.category') }}</span></div>
+          <div class="machine-top"><span><i></i> {{ ['sharp','msx','nes'].includes(graphics) ? t('graphics.' + graphics) : t('brand.machine') }}</span><span>{{ t('game.category') }}</span></div>
           <div class="screen-wrap" :class="{ 'show-title': mode === 'ready' }">
             <div class="game-hud sr-only"><span>{{ t('game.scene') }} <b>{{ String(scene).padStart(3, '0') }}</b></span><span class="lives" :aria-label="plural('game.lives', lives)">{{ lives }}</span><span class="mushroom-count">{{ t('game.ammo') }} <b>{{ ammo }}</b></span><span>{{ t('game.time') }} <b>{{ timeText }}</b></span></div>
-            <div class="viewport">
+            <div class="viewport" :style="{ aspectRatio: String(gameAspect) }">
               <canvas ref="canvas" width="240" height="200" tabindex="0" :class="{ 'modern-graphics': graphics === 'modern' }" :data-graphics="graphics" :data-state="mode" :data-transition="transitionPhase || undefined" :aria-label="t('game.canvas')"></canvas>
               <button v-if="mode === 'ready'" class="title-screen" @click="start" :aria-label="t('game.start')">
-                <img src="./assets/title-screen.png" width="288" height="256" :alt="t('game.titleImage')" fetchpriority="high" draggable="false">
+                <span class="title-art" :class="{ 'pmd-color-title': graphics === 'color' }"><img :src="titleScreen.src" :width="titleScreen.width" :height="titleScreen.height" :alt="t('game.titleImageMode', {version: t('graphics.' + graphics)})" fetchpriority="high" draggable="false"></span>
                 <span class="title-prompt">{{ t('game.startPrompt') }} <kbd>{{ t('key.space') }}</kbd></span>
               </button>
               <div v-if="mode === 'paused' || (mode === 'dead' && !lives && deathReady) || mode === 'won'" class="overlay">

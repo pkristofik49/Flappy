@@ -1,5 +1,12 @@
 export const GRAPHICS_KEY='flappy.graphics';
-export const graphicsModes=['mono','color','modern'];
+export const graphicsModes=['mono','color','sharp','msx','nes','modern'];
+export const titleScreens={
+ mono:{src:'./assets/title-screen.png',width:288,height:256},
+ color:{src:'./assets/title-screen.png',width:288,height:256},
+ sharp:{src:'./assets/title-sharp.png',width:320,height:200},
+ msx:{src:'./assets/title-msx.png',width:256,height:192},
+ nes:{src:'./assets/title-nes.png',width:256,height:224}
+};
 export function loadGraphics(storage){
   try{const saved=(storage??globalThis.localStorage).getItem(GRAPHICS_KEY);if(graphicsModes.includes(saved))return saved}catch{/* Keep the default when storage is unavailable. */}
   return 'mono';
@@ -39,4 +46,15 @@ export function modernSprite(ctx,atlas,index,x,y,width,height,{flip=false,opacit
   ctx.translate(x+(flip?width:0),y);if(flip)ctx.scale(-1,1);
   ctx.drawImage(source?source.image:atlas.image,frame.x,frame.y,frame.width,frame.height,0,0,width,height);
   ctx.restore();
+}
+export function pcTitle(atlas,title,subtitle,version){
+ const canvas=document.createElement('canvas');canvas.width=960;canvas.height=800;const ctx=canvas.getContext('2d');
+ const gradient=ctx.createLinearGradient(0,0,0,800);gradient.addColorStop(0,'#213b59');gradient.addColorStop(1,'#101924');ctx.fillStyle=gradient;ctx.fillRect(0,0,960,800);
+ ctx.fillStyle='#131f2d';for(let y=0;y<800;y+=32)for(let x=-(y%64?24:0);x<960;x+=48){ctx.fillRect(x+2,y+2,44,28)}
+ ctx.textAlign='center';ctx.font='900 116px Arial, sans-serif';ctx.fillStyle='#081322';ctx.fillText(title,484,192);ctx.fillStyle='#f2df9d';ctx.fillText(title,480,184);
+ ctx.font='600 26px Arial, sans-serif';ctx.fillStyle='#9fbccf';ctx.fillText(subtitle,480,240);
+ modernSprite(ctx,atlas,2,230,330,225,300);modernSprite(ctx,atlas,13,530,396,150,200);
+ ctx.fillStyle='#155ca7';ctx.fillRect(525,600,160,20);ctx.fillStyle='#72e1ff';ctx.fillRect(525,600,160,4);
+ ctx.fillStyle='#9bbdba';ctx.font='600 22px Arial, sans-serif';ctx.fillText(version,480,724);
+ return {src:canvas.toDataURL(),width:960,height:800};
 }

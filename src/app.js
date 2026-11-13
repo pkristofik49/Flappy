@@ -5,7 +5,8 @@ import { render } from './render.js';
 import {LANGUAGE_KEY,languages,loadLanguage,translate,plural as translatePlural} from './i18n.js';
 import {GameAudio,SOUND_KEY,loadSound} from './audio.js';
 import {LevelTransition} from './transition.js';
-import {GRAPHICS_KEY,graphicsModes,loadGraphics,loadModernSprites} from './graphics.js';
+import {GRAPHICS_KEY,graphicsModes,loadGraphics,loadModernSprites,titleScreens,pcTitle} from './graphics.js';
+import {retroModes} from './retro.js';
 import {Motion} from './motion.js';
 const STORAGE='flappy-pmd85-progress-v1';
 const DEATH_MS=720;
@@ -23,6 +24,8 @@ createApp({setup(){
   let modernAtlas=null;
   const motion=new Motion();
   const expanded=ref(false),expandedWidth=ref(760);
+  const gameAspect=computed(()=>retroModes.includes(graphics.value)?1.6:1.2);
+  const titleScreen=computed(()=>graphics.value==='modern'&&graphicsReady.value?pcTitle(modernAtlas,t('brand.name'),t('game.pcTitleSubtitle'),t('graphics.modern')):titleScreens[graphics.value]??titleScreens.mono);
   const audioAvailable=Boolean(window.AudioContext||window.webkitAudioContext);
   const audio=new GameAudio();audio.setEnabled(sound.value);
   const version=globalThis.FLAPPY_VERSION;const timeText=computed(()=>`${Math.floor(remaining.value/60)}:${String(remaining.value%60).padStart(2,'0')}`);
@@ -75,7 +78,7 @@ createApp({setup(){
       const width=window.visualViewport?.width??window.innerWidth,height=window.visualViewport?.height??window.innerHeight;
       const sideControls=window.matchMedia('(pointer:coarse)').matches&&width>=600&&width>height&&height<=520;
       const chromeHeight=machineRect.height-boardRect.height,chromeWidth=machineRect.width-boardRect.width;
-      expandedWidth.value=Math.max(140,Math.min(width-(sideControls?340:24),Math.max(80,height-76-chromeHeight)*1.2+chromeWidth));
+      expandedWidth.value=Math.max(140,Math.min(width-(sideControls?340:24),Math.max(80,height-76-chromeHeight)*gameAspect.value+chromeWidth));
     }
   }
   async function toggleExpanded(){
@@ -100,6 +103,7 @@ createApp({setup(){
     graphics.value=value;
     try{localStorage.setItem(GRAPHICS_KEY,value)}catch{/* Keep the in-memory choice. */}
     closeMenus();paint();
+    if(expanded.value)void sizeExpanded();
     if(['playing','entering','transition'].includes(mode.value))focus();
     else void nextTick(()=>graphicsMenuButton.value?.focus({preventScroll:true}));
   }
@@ -112,7 +116,7 @@ createApp({setup(){
   },{immediate:true});
   function save(savedScene=scene.value){try{localStorage.setItem(STORAGE,JSON.stringify({scene:savedScene,unlocked:unlocked.value}))}catch{notice.value='notice.storage'}}
   function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});motion.reset(game);remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
-  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t('game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
+  function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t(retroModes.includes(graphics.value)?'game.originalCredit':'game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
   function focus(){canvas.value?.focus({preventScroll:true})}
   function start(){transition=null;transitionPhase.value='';notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
   function resume(){mode.value=pausedFrom;held=null;last=performance.now();focus()}
@@ -215,5 +219,5 @@ createApp({setup(){
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
   onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',connectivity);window.removeEventListener('offline',connectivity);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
-  return{deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  return{gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,online,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');

@@ -22,7 +22,7 @@ ani service worker.
 
 ## Hraní
 
-- Původní úvodní obrazovka VBG Software (1987): klikni, klepni nebo stiskni mezerník pro spuštění hry.
+- Úvodní obrazovka podle zvoleného grafického režimu: klikni, klepni nebo stiskni mezerník pro spuštění hry.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
@@ -138,6 +138,11 @@ Ikona palety v horním menu nebo **G** otevře výběr:
 - **PMD 85-1** — dosavadní původní pixely, výchozí černobílý režim.
 - **PMD-85-3** — stejné bitmapy s barevnou paletou; Flappy je žlutý,
   žába zelená, duch fialový a cílový krystal modrý.
+- **Sharp MZ-800** — původní čtyřbarevné bitmapy z podkladů Sharp, červené zdi,
+  žlutý Flappy a modří/červení nepřátelé.
+- **MSX** — azurové zdi, žlutá postava, zelený nepřítel a červené kameny.
+- **Nintendo NES** — červené cihly se světlými spárami, světlá postava a odlišné
+  původní kameny a nepřátelé.
 - **PC** — nové kreslené sprity z `assets/modern-sprites.png`,
   vykreslované do Canvasu 960 × 800 místo původních 240 × 200 pixelů.
   Flappy má podobu krtka s růžovým čumákem a hrabavými tlapkami; zdi tvoří
@@ -152,8 +157,13 @@ herních kroků zůstávají beze změny; původní režimy používají krokov�
 
 Šipky vybírají položku, Enter potvrdí a Escape zavře nabídku. Volba se ukládá
 do `flappy.graphics`. Otevřená nabídka dočasně pozastaví běžící hru; změna stylu
-zachová pozice, čas, životy i houby. Všechny tři režimy fungují offline po prvním
-načtení. Úvodní obrazovka zůstává původní ve všech režimech.
+zachová pozice, čas, životy i houby. Všech šest režimů funguje offline po prvním
+načtení. Úvod se mění podle volby: PMD 85-1 zachovává původní snímek VBG,
+PMD-85-3 jej barevně tónuje, Sharp zobrazuje rekonstrukci původní úvodní scény,
+MSX a NES původní titulní snímky a PC novou kompozici s krtkem a krystalem.
+Nové historické režimy vykreslují mřížku do 320 × 200 pixelů. Jde o grafické
+varianty současných 200 sektorů; podrobnosti o převzatých a odvozených snímcích
+jsou v [SOURCES.md](SOURCES.md).
 Žádná další knihovna není potřeba. Původ a přehled moderních spritů viz
 [assets/README.md](assets/README.md).
 

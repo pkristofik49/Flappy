@@ -12,7 +12,7 @@ async function evaluate(expression){const r=await call('Runtime.evaluate',{expre
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(expression){for(let i=0;i<80;i++){if(await evaluate(expression))return;await delay(100)}throw Error('Timed out: '+expression)}
 async function screenshot(file){const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});fs.mkdirSync('test-results',{recursive:true});fs.writeFileSync('test-results/'+file,Buffer.from(r.data,'base64'))}
-const titleReady=`document.querySelector('#app') && !document.querySelector('#app').hasAttribute('v-cloak') && document.querySelector('.title-screen img')?.complete && document.querySelector('.title-screen img')?.naturalWidth===288`;
+const titleReady=`document.querySelector('#app') && !document.querySelector('#app').hasAttribute('v-cloak') && document.querySelector('.title-screen img')?.complete && document.querySelector('.title-screen img')?.naturalWidth>0`;
 async function chooseLanguage(code){
  if(await evaluate(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')!=='true'`))await evaluate(`document.querySelector('.language-menu-toggle').click()`);
  await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);

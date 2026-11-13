@@ -32,15 +32,22 @@ try{
  await evaluate(`localStorage.setItem('flappy.graphics','mono');localStorage.setItem('flappy.language','cs');localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:1,unlocked:1}))`);
  await call('Page.reload');await until(`document.querySelector('canvas')?.dataset.graphics==='mono'`);
  const title=await evaluate(`document.querySelector('.title-screen img').getAttribute('src')`);
- assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#graphics-options button'),b=>b.textContent.trim())`),['PMD 85-1','PMD-85-3','PC']);
+ assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#graphics-options button'),b=>b.textContent.trim())`),['PMD 85-1','PMD-85-3','Sharp MZ-800','MSX','Nintendo NES','PC']);
  await key('KeyG','g');await until(`document.activeElement?.dataset.graphics==='mono'`);
  await key('ArrowDown');await key('Enter');await until(`document.querySelector('canvas').dataset.graphics==='color'`);
  assert.equal(await width(),240);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
  assert.equal(await evaluate(`document.querySelector('.title-screen img').getAttribute('src')`),title);
+ for(const [mode,naturalWidth]of [['sharp',320],['msx',256],['nes',256],['modern',960]]){
+  await choose(mode);await until(`document.querySelector('.title-screen img').complete && document.querySelector('.title-screen img').naturalWidth===${naturalWidth}`);
+  assert.equal(await width(),mode==='modern'?960:320);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
+  const clip=await evaluate(`(()=>{const r=document.querySelector('.viewport').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scale:1}})()`);
+  saveImage('title-'+mode+'.png',`data:image/png;base64,${(await call('Page.captureScreenshot',{format:'png',clip,captureBeyondViewport:true})).data}`);
+ }
  await choose('mono');await evaluate(`document.querySelector('.title-screen').focus()`);await key('Space',' ');
  await until(`document.querySelector('canvas').dataset.state==='playing'`);await key('KeyP','p');
  await until(`document.querySelector('canvas').dataset.state==='paused'`);
  const before=await board(),time=await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`);
+ for(const mode of ['sharp','msx','nes']){await choose(mode);assert.equal(await width(),320);saveImage('board-'+mode+'.png',await board());assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'paused')}
  await choose('color');assert.notEqual(await board(),before);saveImage('original-colour.png',await board());
  await choose('modern');assert.equal(await width(),960);assert.equal(await evaluate(`document.querySelector('canvas').height`),800);
  saveImage('modern-board.png',await board());
@@ -125,7 +132,7 @@ try{
  await choose('modern');await evaluate(`navigator.serviceWorker.ready`);await until(`!!navigator.serviceWorker.controller`);
  await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await call('Page.reload');
  await until(`!!document.querySelector('.title-screen') && document.querySelector('canvas')?.dataset.graphics==='modern' && document.querySelector('canvas').width===960`);
- for(const mode of ['color','mono','modern']){await choose(mode);assert.equal(await width(),mode==='modern'?960:240)}
+ for(const mode of ['sharp','msx','nes','color','mono','modern']){await choose(mode);assert.equal(await width(),mode==='modern'?960:['sharp','msx','nes'].includes(mode)?320:240);await until(`document.querySelector('.title-screen img').complete && document.querySelector('.title-screen img').naturalWidth>0`)}
  await evaluate(`document.querySelector('.title-screen').focus()`);await key('Space',' ');await until(`document.querySelector('canvas').dataset.state==='playing'`);await delay(150);
  await key('ArrowRight');
  const liveFrames=await evaluate(`new Promise(resolve=>{const frames=[],crop=document.createElement('canvas');crop.width=96;crop.height=64;const ctx=crop.getContext('2d');function sample(){ctx.drawImage(document.querySelector('canvas'),24,128,96,64,0,0,96,64);frames.push(crop.toDataURL());if(frames.length===8)resolve(new Set(frames).size);else requestAnimationFrame(sample)}requestAnimationFrame(sample)})`);
@@ -137,7 +144,11 @@ try{
  await key('KeyF','f');await key('KeyG','g');await until(`document.querySelector('.graphics-menu-toggle').getAttribute('aria-expanded')==='true'`);
  assert.equal(await evaluate(`(()=>{const r=document.querySelector('#graphics-options').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})()`),true);
  await delay(200);const mobile=await call('Page.captureScreenshot',{format:'png'});saveImage('graphics-menu-mobile.png',`data:image/png;base64,${mobile.data}`);
- assert.deepEqual(errors,[]);console.log('Graphics browser OK: 16 high-resolution sprites, all three modes, keyboard menu, exact game-state preservation, 960×800 rendering, stored preference, offline switching and 320px toolbar.');
+ for(const mode of ['sharp','msx','nes'])for(const [width,height]of [[320,568],[844,390]]){
+  await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true});await choose(mode);await delay(120);
+  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.machine').getBoundingClientRect();return r.top>=63 && r.bottom<=innerHeight+1 && r.left>=0 && r.right<=innerWidth})()`),true,mode+' expanded viewport fit');
+ }
+ assert.deepEqual(errors,[]);console.log('Graphics browser OK: 16 high-resolution sprites, all six modes, keyboard menu, exact game-state preservation, 960×800 rendering, stored preference, offline switching and 320px toolbar.');
 }finally{
  await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(()=>{});
  if(saved)await evaluate(`localStorage.clear();Object.entries(JSON.parse(${JSON.stringify(saved)})).forEach(([k,v])=>localStorage.setItem(k,v))`).catch(()=>{});

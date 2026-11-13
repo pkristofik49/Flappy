@@ -1,5 +1,41 @@
 # Původ dat a grafiky
 
+## Sharp MZ-800, MSX a Nintendo NES
+
+Nové režimy jsou grafické adaptace na stávající mřížku a pravidla PMD, nikoli
+emulátory jednotlivých počítačů a konzole. Herní sektory se přepnutím nemění.
+
+- **Sharp:** [Flappy.cz — popis a podklady verze Sharp](https://flappy.cz/flappy/en/flappy.html),
+  bitmapová data `http://flappy.cz/flappy/_js/game/Images.js`, nativní úvodní
+  rozložení `Intro.js` a font `Font.js` ze stejného adresáře. Podklady zveřejnil
+  Petr Šlechta ve své adaptaci původního dB-SOFT Flappyho. Importují se pouze
+  obrazová data; cizí herní JavaScript není součástí aplikace.
+- **MSX:** [Vizzed — Flappy pro MSX](https://www.vizzed.com/games/flappy-msx-msx-16473-game),
+  původní [úvodní menu](https://www.vizzed.com/videogames/msx/screenshot/Flappy-1.png)
+  a [herní snímek](https://www.vizzed.com/videogames/msx/screenshot/Flappy-2.png).
+  Z herního snímku jsou načtené pixely postavy, kamenů, nepřátel, houby a zdiva.
+- **NES:** titulní a herní snímky z archivu Libretro:
+  [titulní obrazovka](https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Titles/Flappy%20%28Japan%29.png),
+  [herní snímek](https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Snaps/Flappy%20%28Japan%29.png).
+  Originální snímky mají oříznutý overscan, rozměry 256 × 224.
+
+`assets/retro-data.js` obsahuje číselné RGB bitmapy. Statické snímky MSX a NES
+jsou uložené beze změn v `assets/title-msx.png` a `assets/title-nes.png`.
+`assets/title-sharp.png` rekonstruuje statickou fázi úvodu z původních bitmap,
+loga a souřadnic, včetně roku 1984. Některé směrové a krokové fáze MSX/NES,
+které na statických podkladech nejsou, jsou odvozené ze Sharp bitmap příslušnou
+paletou a zrcadlením. Nejde o tvrzení, že všechny animační snímky jsou přesným
+dumpem příslušného vydání. Původní práva zůstávají autorům a držitelům hry.
+
+Reprodukovatelný import: do adresáře vlož `sharp-Images.js`, `sharp-Intro.js`,
+`sharp-Font.js`, `msx-game.png` a `nes-game.png` z uvedených podkladů a spusť
+`node tools/import-platform-assets.mjs cesta/k/podkladum`. Pomocný PNG dekodér
+čte pouze obrazová data a nevyžaduje balíčky. MSX/NES titulní PNG se kopírují
+beze změn. Úvod PC se skládá z již používaných lokálních spritů a překladů,
+PMD-85-3 barevně tónuje původní obrázek VBG pomocí CSS, bez změny jeho souboru.
+
+## PMD a PC
+
 Režim **PC** používá samostatné AI generované ilustrace
 v `assets/modern-sprites.png` (vestavěný imagegen). Přesný prompt a pořadí
 snímků jsou v `assets/modern-mole-prompt.txt` a `assets/README.md`. Jde o novou

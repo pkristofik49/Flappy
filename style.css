@@ -23,6 +23,13 @@
 .language-switch{position:absolute;top:calc(100% + 8px);right:0;display:flex;flex-direction:column;width:154px;max-width:calc(100vw - 24px);padding:5px;gap:3px;background:var(--panel);border:1px solid #566344;box-shadow:0 8px 24px #0007;z-index:30;transform-origin:top right}
 .language-switch button{text-align:left;padding:10px 12px;font-size:12px;min-height:38px;border-radius:2px}
 .graphics-switch{width:220px}
+.graphics-switch{max-height:calc(100dvh - 80px);overflow-y:auto}
+.graphics-swatch.sharp{background:linear-gradient(135deg,#ff0 33%,#f00 33% 66%,#00f 66%)}
+.graphics-swatch.msx{background:linear-gradient(135deg,#40e8f0 40%,#d0c050 40% 70%,#20b038 70%)}
+.graphics-swatch.nes{background:linear-gradient(135deg,#fce4a0 40%,#a40000 40% 70%,#80d010 70%)}
+.title-art{display:flex;flex:1;position:relative;min-height:0;width:100%;isolation:isolate;pointer-events:none;background:#000}
+.title-art img{height:100%;min-height:0}
+.pmd-color-title::after{content:'';position:absolute;inset:0;background:linear-gradient(#ffe856 0 28%,#65dcff 48%,#72db73 78%);mix-blend-mode:multiply;pointer-events:none}
 .graphics-switch button{display:flex;align-items:center;gap:10px}
 .graphics-swatch{width:16px;height:16px;border:1px solid #ffffff40;border-radius:3px;flex-shrink:0}
 .graphics-swatch.mono{background:linear-gradient(135deg,#eee 50%,#222 50%)}

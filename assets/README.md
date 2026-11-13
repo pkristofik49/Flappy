@@ -1,5 +1,20 @@
 # Herní grafika
 
+## Sharp MZ-800, MSX a Nintendo NES
+
+`retro-data.js` obsahuje RGB pixely historických spritů a jejich odvozených
+směrových fází; původ, souřadnice importu a omezení jsou v [SOURCES.md](../SOURCES.md).
+`src/retro.js` kreslí bitmapy bez externích knihoven. Tyto režimy mají Canvas
+320 × 200, zachovávají současná pravidla, smrt i rozsypání kamenů.
+
+- [title-sharp.png](title-sharp.png): statická fáze úvodu sestavená z nativních dat.
+- [title-msx.png](title-msx.png): původní úvodní menu MSX, 256 × 192.
+- [title-nes.png](title-nes.png): původní titulní snímek NES, 256 × 224.
+
+Úvod PC se vykresluje lokálně přes Canvas z krtka, krystalu a přeloženého titulku.
+PMD 85-1 používá beze změn obrázek VBG; PMD-85-3 tentýž snímek barevně tónuje
+překryvem CSS. Všechny podklady jsou dostupné i v offline cache.
+
 ## PC
 
 [modern-sprites.png](modern-sprites.png) je samostatný atlas 1254 × 1254 pixelů
