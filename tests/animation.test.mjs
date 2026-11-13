@@ -1,25 +1,39 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Game} from '../src/engine.js';
-import {playerSprite,enemySprite} from '../src/render.js';
+import {playerSprite,playerPose,enemySprite} from '../src/render.js';
 import {sprites} from '../assets/game-data.js';
 
 const empty=()=>new Game({walls:[],objects:[]});
 const directions=[['left',-1,0],['right',1,0],['up',0,-1],['down',0,1]];
 
-test('Successful walking cycles through four distinct native-size poses in every direction',()=>{
+test('Walking cycles through directional poses with their full native dimensions',()=>{
  for(const [name,dx,dy]of directions){
   const game=empty();game.player.x=12;game.player.y=10;
   const poses=[];
   for(let step=0;step<4;step++){
    assert.equal(game.move(dx,dy),true,name);
    const pose=playerSprite(game.player);
-   assert.equal(pose.length,32,name);
+   const visual=playerPose(game.player);
+   assert.equal(pose.length,visual.width*visual.height,name);
+   assert.equal(visual.height,16,name);
+   assert.equal(visual.width,dx&&game.player.walkFrame%2?3:2,name);
    assert.ok(pose.every(byte=>Number.isInteger(byte)&&byte>=0&&byte<64),name);
    poses.push(JSON.stringify(pose));
    game.tick();
   }
-  assert.equal(new Set(poses).size,4,name);
+  assert.equal(new Set(poses).size,dx?2:4,name);
+ }
+});
+
+test('Sideways walking uses unchanged PMD bitmaps instead of generated leg shapes',()=>{
+ for(const [name,dx]of [['left',-1],['right',1]]){
+  for(let frame=0;frame<4;frame++){
+   const p={dx,dy:0,walking:true,walkFrame:frame};
+   const pose=playerPose(p);
+   assert.equal(pose.data,sprites[frame%2?name+'Step':name]);
+   assert.equal(pose.x,frame%2&&dx>0?-6:0);
+  }
  }
 });
 

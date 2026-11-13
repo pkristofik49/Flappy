@@ -15,12 +15,18 @@ function stride(base,phase){
 const walkingSprites={
   down:[sprites.front,sprites.walk1,stride(sprites.front,2),sprites.walk2],
   up:[sprites.back,stride(sprites.back,1),stride(sprites.back,2),stride(sprites.back,3)],
-  left:[sprites.left,stride(sprites.left,1),stride(sprites.left,2),stride(sprites.left,3)],
-  right:[sprites.right,stride(sprites.right,1),stride(sprites.right,2),stride(sprites.right,3)]
+  left:[sprites.left,sprites.leftStep,sprites.left,sprites.leftStep],
+  right:[sprites.right,sprites.rightStep,sprites.right,sprites.rightStep]
 };
 export function playerSprite(player){
   const direction=player.dx<0?'left':player.dx>0?'right':player.dy<0?'up':'down';
   return walkingSprites[direction][player.walking?player.walkFrame:0];
+}
+export function playerPose(player){
+  const data=playerSprite(player);
+  const width=data.length/16;
+  // Native side-step frames span three PMD cells, including the previous position.
+  return {data,width,height:16,x:width===3&&player.dx>0?-6:0,y:0};
 }
 const frogPoses={
   down:{idle:sprites.frog,step:sprites.frogDownStep,width:2,height:24,x:0,y:-8},
@@ -68,6 +74,7 @@ export function render(ctx,game){
     if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText('z',e.x*6+10,e.y*8+1)}
   }
   const p=game.player;
-  bitmap(ctx,playerSprite(p),p.x*6,p.y*8);
+  const pose=playerPose(p);
+  bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height);
   for(const s of game.shots)bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8);
 }

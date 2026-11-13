@@ -26,9 +26,11 @@ Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mř
 Cílové vejce má zachovaný původní obrys, ale plnou bílou výplň, aby se v
 černobílém zobrazení jasně odlišilo od tečkovaných běžných kamenů. Bitmapy
 vejce a kamene v remasteru jsou stejné; samotný barevný rozdíl se do ČB nepřenáší.
-Chůze dolů používá původní čelní animační snímky. Další fáze kroku jsou
-odvozené z původních směrových bitmap: zachovávají hlavu a tělo, střídají nohy
-a přidávají mírné pohupování. Animace běží pouze při úspěšném pohybu.
+Chůze vlevo a vpravo střídá původní klidové a rozšířené krokové bitmapy PMD
+bez programových úprav nohou. Chůze dolů používá původní čelní snímky a jednu
+odvozenou fázi; fáze chůze nahoru jsou odvozené z původní zadní bitmapy.
+Animace běží pouze při úspěšném pohybu. Přehled grafiky a jejího uložení
+je v `assets/README.md`, obrazový náhled v `assets/sprites.png`.
 Žába používá osm původních bitmap: klidový postoj a fázi skoku pro každý ze
 čtyř směrů. Rozšířené skokové snímky se vykreslují v původní velikosti
 12 × 24 nebo 18 × 16 pixelů; kolizní rozměry zůstávají stejné.
