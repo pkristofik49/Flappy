@@ -14,7 +14,7 @@ for(const [n,l]of levels.entries()){
  for(const o of l.objects){assert.ok(o.x>=0&&o.x<40);assert.ok(o.y>=0&&o.y<22)}
 }
 for(const[name,data]of Object.entries(sprites)){assert.ok(data.length>0,name);assert.ok(data.every(v=>v>=0&&v<64),name)}
-for(const file of ['sw.js','version.js','src/app.js','src/engine.js','src/render.js','src/audio.js','src/i18n.js','src/translations.js','assets/game-data.js','vendor/vue.esm-browser.prod.js'])execFileSync(process.execPath,['--check',new URL(file,root).pathname.replace(/^\/([A-Za-z]:)/,'$1')]);
+for(const file of ['sw.js','version.js','src/app.js','src/engine.js','src/render.js','src/pixel-font.js','src/audio.js','src/i18n.js','src/translations.js','assets/game-data.js','vendor/vue.esm-browser.prod.js'])execFileSync(process.execPath,['--check',new URL(file,root).pathname.replace(/^\/([A-Za-z]:)/,'$1')]);
 execFileSync(process.execPath,[new URL('tools/localize-static.mjs',root).pathname.replace(/^\/([A-Za-z]:)/,'$1'),'--check']);
 const manifest=JSON.parse(fs.readFileSync(new URL('manifest.webmanifest',root),'utf8'));
 for(const icon of manifest.icons){const data=fs.readFileSync(new URL(icon.src,root));assert.equal(data.readUInt32BE(16),Number(icon.sizes.split('x')[0]));assert.equal(data.readUInt32BE(20),Number(icon.sizes.split('x')[1]))}

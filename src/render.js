@@ -1,5 +1,7 @@
 import { sprites } from '../assets/game-data.js';
 import {translations} from './translations.js';
+import {pixelText} from './pixel-font.js';
+export const HUD_HEIGHT=24,CANVAS_WIDTH=240,CANVAS_HEIGHT=200;
 // Preserve the native head and body. Two opposing steps use a raised body
 // and alternate the planted foot; the in-between poses bring the feet together.
 function stride(base,phase){
@@ -62,11 +64,26 @@ export function bitmap(ctx,data,x,y,width=2,height=16,color='#eef0e5',flip=false
   ctx.fillStyle=color;
   for(let row=0;row<height;row++)for(let col=0;col<width;col++)for(let bit=0;bit<6;bit++)if(data[row*width+col]&(1<<bit))ctx.fillRect(x+(flip?width*6-1-(col*6+bit):col*6+bit),y+row,1,1);
 }
-export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker']){
-  ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,240,176);
+function brick(ctx,x,y){
+  for(let row=0;row<8;row++){if(row===3||row===7)continue;for(let col=0;col<6;col++)if(col!==(row<3?0:3))ctx.fillRect(x+col,y+row,1,1)}
+}
+function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translations.cs['game.scene'],timeLabel=translations.cs['game.time'],credit=translations.cs['game.boardCredit']}={}){
+  ctx.fillStyle='#bfc5b9';
+  for(let x=0;x<CANVAS_WIDTH;x+=6)brick(ctx,x,0);
+  for(const x of [0,66,162,234])for(const y of [8,16])brick(ctx,x,y);
+  const reserves=Math.max(0,Math.min(5,lives-(game.state==='dead'?0:1)));
+  for(let i=0;i<reserves;i++)bitmap(ctx,sprites.front,6+(i+(game.entry?1:0))*12,8);
+  pixelText(ctx,sectorLabel,78,8);pixelText(ctx,String(scene).padStart(3,'0'),138,8);
+  pixelText(ctx,timeLabel,174,8);pixelText(ctx,timeText,210,8);
+  pixelText(ctx,credit,174,16,'#aab2a2');
+}
+export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],hud){
+  ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+  drawHud(ctx,game,hud);
+  ctx.save();ctx.translate(0,HUD_HEIGHT);
   // PMD's native character cell is 6 × 8 pixels.
   ctx.fillStyle='#bfc5b9';
-  for(const cell of game.walls){const [x,y]=cell.split(',').map(Number);for(let row=0;row<8;row++){if(row===3||row===7)continue;for(let col=0;col<6;col++){if(col===(row<3?0:3))continue;ctx.fillRect(x*6+col,y*8+row,1,1)}}}
+  for(const cell of game.walls){const [x,y]=cell.split(',').map(Number);brick(ctx,x*6,y*8)}
   if(game.goal){const{x,y}=game.goal;ctx.fillStyle='#fafcf3';ctx.fillRect(x*6,y*8,12,8);ctx.fillStyle='#5e6a51';for(let i=0;i<12;i+=2)ctx.fillRect(x*6+i,y*8,1,8)}
   for(const m of game.mushrooms)bitmap(ctx,[12,30,63,63,12,12,12,0],m.x*6,m.y*8,1,8);
   for(const r of game.rocks)bitmap(ctx,r.egg?targetEgg:sprites.rock,r.x*6,r.y*8);
@@ -79,4 +96,5 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'])
   const pose=playerPose(p);
   bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height);
   for(const s of game.shots)bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8);
+  ctx.restore();
 }

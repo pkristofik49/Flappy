@@ -44,6 +44,13 @@ pokračuje dolů. Jde o novou implementaci časování, nikoli emulaci originál
 v rozlišení 288 × 256 pixelů. SHA256 PNG:
 `338fec4330284911c478b7499b1fe0a4fcd95f66593dbac3950452632b6f9439`.
 
+Rozložení životů, sektoru a času v horním zdivu vychází z uživatelem zadaného
+[snímku původní herní plochy](https://pmd85.borik.net/w/images/5/54/Vbg_flappy_2.png).
+Ukazatele jsou součástí herního Canvasu, s pixelovým písmem na mřížce 6 × 8
+a původními bitmapami kuřátek. Nástup života otevírá dvě buňky horní stěny,
+nechá kuřátko sestoupit z řady a průchod znovu uzavře. Časování je nově
+implementované; herní souřadnice a data všech 200 scén se nemění.
+
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.
 Žádné CDN, fontové služby, analytika ani jiné knihovny nejsou použity.

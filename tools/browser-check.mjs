@@ -38,7 +38,7 @@ try{
  const startPoint=await evaluate(`(()=>{const r=document.querySelector('.title-screen').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);
  await call('Input.dispatchMouseEvent',{type:'mousePressed',...startPoint,button:'left',clickCount:1});
  await call('Input.dispatchMouseEvent',{type:'mouseReleased',...startPoint,button:'left',clickCount:1});
- await until(`!document.querySelector('.title-screen') && !document.querySelector('.overlay')`);
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
  const pixels=await evaluate(`Array.from(document.querySelector('canvas').getContext('2d').getImageData(0,0,240,176).data).filter((v,i)=>i%4!==3&&v>0).length`);assert.ok(pixels>1000);
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'ArrowRight',key:'ArrowRight'});await call('Input.dispatchKeyEvent',{type:'keyUp',code:'ArrowRight',key:'ArrowRight'});
  await delay(1200);assert.notEqual(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),'6:00');
@@ -56,7 +56,7 @@ try{
  const touchPoint=await evaluate(`(()=>{const r=document.querySelector('.title-screen').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);
  await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touchPoint]});
  await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
- await until(`!document.querySelector('.title-screen') && !document.querySelector('.overlay')`);
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
  await evaluate(`navigator.serviceWorker.ready.then(()=>true)`);await until('!!navigator.serviceWorker.controller');
  await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await call('Page.reload');
  await until(titleReady);
@@ -64,7 +64,7 @@ try{
  await evaluate(`document.querySelector('.title-screen').focus()`);
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'Space',key:' '});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'Space',key:' '});
- await until(`!document.querySelector('.title-screen') && !document.querySelector('.overlay')`);
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.equal(await evaluate(`document.querySelector('.screen-bottom b').textContent`),'00');
  assert.equal(await evaluate(`document.querySelector('.notice').textContent.includes('Nejdřív')`),false,'Starting with space must not also fire');
  assert.equal(await evaluate(`navigator.onLine`),false);
@@ -120,7 +120,7 @@ try{
  await evaluate(`document.querySelector('[data-language="en"]').click();document.querySelector('.title-screen').focus()`);
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'Space',key:' '});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'Space',key:' '});
- await until(`!document.querySelector('.title-screen') && window.__flappyAudioContexts.length===1 && window.__flappyOscillators.length>0`);
+ await until(`document.querySelector('canvas').dataset.state==='playing' && window.__flappyAudioContexts.length===1 && window.__flappyOscillators.length>0`);
  await clickSound();
  await until(`document.querySelectorAll('.machine-controls button')[2].getAttribute('aria-pressed')==='false'`);
  assert.equal(await evaluate(`localStorage.getItem('flappy.sound')`),'false');
@@ -141,12 +141,12 @@ try{
  assert.ok(Object.values(audible).every(rms=>rms>.0001),'Every effect must produce non-silent audio');
  const crushSequence=await evaluate(`(async()=>{
   const {Game,CRUSH_TICKS}=await import('./src/engine.js');
-  const {render}=await import('./src/render.js');
-  const scene=document.createElement('canvas');scene.width=240;scene.height=176;
+  const {render,HUD_HEIGHT,CANVAS_HEIGHT}=await import('./src/render.js');
+  const scene=document.createElement('canvas');scene.width=240;scene.height=CANVAS_HEIGHT;
   const strip=document.createElement('canvas');strip.width=288;strip.height=224;
   const ctx=strip.getContext('2d');ctx.imageSmoothingEnabled=false;
   const g=new Game({walls:[],objects:[{type:3,x:5,y:1},{type:5,x:5,y:3}]});
-  function snapshot(index){render(scene.getContext('2d'),g);ctx.drawImage(scene,24,0,24,56,index*96,0,96,224)}
+  function snapshot(index){render(scene.getContext('2d'),g);ctx.drawImage(scene,24,HUD_HEIGHT,24,56,index*96,0,96,224)}
   snapshot(0);g.tick();snapshot(1);
   const corpseVisible=g.corpses.length===1&&g.rocks[0].y===2;
   for(let i=0;i<CRUSH_TICKS;i++)g.tick();snapshot(2);
@@ -154,5 +154,48 @@ try{
  })()`);
  assert.equal(crushSequence.corpseVisible,true);assert.equal(crushSequence.continued,true);
  fs.writeFileSync('test-results/crush-sequence.png',Buffer.from(crushSequence.image.split(',')[1],'base64'));
- assert.deepEqual(errors,[]);console.log('Browser OK: title/start controls, CS/EN and offline persistence, layouts, real Web Audio effects and original crushed-enemy rendering.');
+ // Exercise the real life-loss flow without a test-only application API.
+ await evaluate(`document.querySelectorAll('.machine-controls button')[1].click()`);
+ await until(`document.querySelector('canvas').dataset.state==='entering'`);
+ assert.equal(await evaluate(`document.querySelector('canvas').height`),200);
+ assert.equal(await evaluate(`document.querySelector('.game-hud').getBoundingClientRect().width<=1`),true,'The DOM status summary must not duplicate the canvas header');
+ await evaluate(`document.querySelector('.machine-controls button').click()`);
+ await until(`document.querySelector('canvas').dataset.state==='paused'`);
+ const pausedEntry=await evaluate(`document.querySelector('canvas').toDataURL()`);
+ await delay(300);
+ assert.equal(await evaluate(`document.querySelector('canvas').toDataURL()`),pausedEntry,'Pause must freeze entry and its gate');
+ await evaluate(`document.querySelector('.primary').click()`);
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
+ await screenshot('integrated-hud.png');
+ const previousLives=await evaluate(`Number(document.querySelector('.lives').textContent)`);
+ // Scene 1: walk around the first platform into the ghost on the left.
+ for(const code of ['ArrowRight','ArrowRight','ArrowRight','ArrowRight','ArrowDown','ArrowDown','ArrowDown','ArrowDown','ArrowLeft','ArrowLeft','ArrowLeft']){
+  if(await evaluate(`document.querySelector('canvas').dataset.state!=='playing'`))break;
+  await call('Input.dispatchKeyEvent',{type:'keyDown',code,key:code});await call('Input.dispatchKeyEvent',{type:'keyUp',code,key:code});
+ }
+ await until(`document.querySelector('canvas').dataset.state==='dead'`);
+ assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),previousLives-1);
+ assert.equal(await evaluate(`document.querySelector('.overlay')===null`),true,'A remaining life must re-enter automatically');
+ await until(`document.querySelector('canvas').dataset.state==='entering'`);
+ await delay(270);await screenshot('life-entry.png');
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
+ assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),previousLives-1,'One death must consume exactly one life');
+ assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),'6:00');
+ // The final life must end the game instead of starting another entry.
+ for(let remaining=previousLives-1;remaining>0;remaining--){
+  for(const code of ['ArrowRight','ArrowRight','ArrowRight','ArrowRight','ArrowDown','ArrowDown','ArrowDown','ArrowDown','ArrowLeft','ArrowLeft','ArrowLeft']){
+   if(await evaluate(`document.querySelector('canvas').dataset.state!=='playing'`))break;
+   await call('Input.dispatchKeyEvent',{type:'keyDown',code,key:code});await call('Input.dispatchKeyEvent',{type:'keyUp',code,key:code});
+  }
+  await until(`document.querySelector('canvas').dataset.state==='dead'`);
+  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),remaining-1);
+  if(remaining>1)await until(`document.querySelector('canvas').dataset.state==='playing'`);
+ }
+ await until(`document.querySelector('.overlay h2')?.textContent==='GAME OVER'`);
+ await delay(1000);assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'dead');
+ await evaluate(`document.querySelector('.primary').click()`);
+ await until(`document.querySelector('canvas').dataset.state==='entering'`);
+ assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),5);
+ await until(`document.querySelector('canvas').dataset.state==='playing'`);
+ assert.deepEqual(errors,[]);console.log('Browser OK: integrated pixel HUD, all five lives, automatic gate entry, pause, game over/new game, title controls, CS/EN, offline operation, sound and crushed enemies.');
 }finally{if(instrumentId)await call('Page.removeScriptToEvaluateOnNewDocument',{identifier:instrumentId}).catch(()=>{});await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(()=>{});ws.close()}

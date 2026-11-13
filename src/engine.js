@@ -1,8 +1,9 @@
 export const WIDTH = 40, HEIGHT = 22;
 export const CRUSH_TICKS = 5; // 600 ms of game time; paused together with the scene.
+export const ENTRY_TICKS = 8;
 const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export class Game {
-  constructor(level,{seed=12345}={}) {
+  constructor(level,{seed=12345,entering=false}={}) {
     this.walls=new Set();this.rocks=[];this.enemies=[];this.corpses=[];this.mushrooms=[];this.shots=[];
     this.player={x:1,y:1,w:2,h:2,dx:1,dy:0,walking:false,walkFrame:0,walkTick:0};this.goal=null;this.ammo=0;this.state='playing';this.ticks=0;this.seed=seed;this.reason='';
     for(let x=0;x<WIDTH;x++){this.walls.add(`${x},0`);this.walls.add(`${x},${HEIGHT-1}`)}
@@ -14,6 +15,19 @@ export class Game {
       if(o.type===4||o.type===5)this.enemies.push({...a,type:o.type===4?'frog':'ghost',dx:1,dy:0,sleep:0});
       if(o.type===6)this.goal={...a,h:1};
     }
+    this.entry=null;
+    if(entering){
+      this.state='entering';this.entry={tick:0};
+      this.walls.delete('1,0');this.walls.delete('2,0');
+      Object.assign(this.player,{y:-2,dx:0,dy:1,walking:true});
+    }
+  }
+  advanceEntry(){
+    const step=++this.entry.tick;
+    this.player.y=Math.min(1,Math.max(-2,step-4));
+    this.player.walking=step>=3&&step<=5;this.player.walkFrame=step%4;
+    if(step>=6){this.walls.add('1,0');this.walls.add('2,0')}
+    if(step>=ENTRY_TICKS){this.entry=null;this.state='playing';this.player.walking=false}
   }
   random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296}
   wallAt(a){if(a.x<0||a.y<0||a.x+a.w>WIDTH||a.y+a.h>HEIGHT)return true;for(let y=a.y;y<a.y+a.h;y++)for(let x=a.x;x<a.x+a.w;x++)if(this.walls.has(`${x},${y}`))return true;return false}
@@ -60,6 +74,7 @@ export class Game {
   checkEnemies(){if(this.enemies.some(e=>!e.sleep&&intersects(e,this.player)))this.die('death.enemy')}
   checkGoal(){if(this.state==='playing'&&this.goal&&this.rocks.some(r=>r.egg&&r.x===this.goal.x&&(r.y+r.h===this.goal.y||intersects(r,this.goal)))){this.state='won';this.event='win'}}
   tick(){
+    if(this.state==='entering'){this.advanceEntry();return}
     if(this.state!=='playing')return;
     this.ticks++;
     this.corpses=this.corpses.filter(corpse=>--corpse.life>0);

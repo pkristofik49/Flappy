@@ -12,3 +12,6 @@
 .language-switch button[aria-pressed="true"]{background:var(--accent);color:var(--bg);font-weight:bold}
 .intro>p,.about p{white-space:pre-line}
 @media(max-width:760px){.masthead{height:auto;min-height:85px;gap:12px;padding-top:15px;padding-bottom:15px}.header-actions{gap:8px;flex-wrap:wrap;justify-content:flex-end}.header-actions .status{display:none}.intro>p,.about p{white-space:normal}}
+/* The status strip is drawn into the same pixel canvas as the room. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.viewport{aspect-ratio:240/200;margin-top:0}
