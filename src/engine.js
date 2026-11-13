@@ -54,15 +54,11 @@ export class Game {
     this.ticks++;
     if(this.ticks-this.player.walkTick>=2)this.player.walking=false;
     for(const rock of [...this.rocks].sort((a,b)=>b.y-a.y)){
-      let dest={...rock,y:rock.y+1};
+      const dest={...rock,y:rock.y+1};
       if(this.blocked(dest,rock)){
         rock.falling=false;
-        // Round stones can roll off another stone if both the side and lower space are empty.
-        if(this.rockAt(dest,rock))for(const dx of [-1,1]){
-          const side={...rock,x:rock.x+dx*2};const diagonal={...side,y:rock.y+1};
-          if(!this.blocked(side,rock)&&!this.blocked(diagonal,rock)&&!intersects(side,this.player)){dest=diagonal;break}
-        }
-        if(this.blocked(dest,rock))continue;
+        // A supporting stone holds the object in place; gravity never moves it sideways.
+        continue;
       }
       if(intersects(dest,this.player)){this.die('Pozor na padající kameny a vejce.');return}
       this.enemies=this.enemies.filter(e=>!intersects(dest,e));

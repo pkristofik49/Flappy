@@ -6,6 +6,40 @@ const level=(objects=[],walls=[])=>({objects:[{type:2,x:15,y:10},{type:6,x:25,y:
 test('All 200 original scenes load with an accessible spawn',()=>{
  for(const[n,l]of levels.entries()){const g=new Game(l);assert.ok(!g.wallAt(g.player),`Scene ${n+1}`);assert.ok(!g.rockAt(g.player),`Scene ${n+1}`)}
 });
+
+test('Scene 2: the egg remains on its supporting stone at the start',()=>{
+ const g=new Game(levels[1]);
+ const egg=g.rocks.find(r=>r.egg);
+ const start={x:egg.x,y:egg.y};
+ for(let i=0;i<30;i++)g.tick();
+ assert.deepEqual({x:egg.x,y:egg.y},start);
+ assert.equal(egg.falling,false);
+});
+
+test('Supported eggs and stones never roll sideways, even with space on both sides',()=>{
+ for(const type of [2,3]){
+  const g=new Game({walls:[],objects:[{type,x:10,y:17},{type:3,x:10,y:19}]});
+  const top=g.rocks[0];
+  for(let i=0;i<10;i++)g.tick();
+  assert.deepEqual({x:top.x,y:top.y},{x:10,y:17});
+  assert.equal(top.falling,false);
+ }
+});
+
+test('An egg falls straight down once its supporting stone is pushed away',()=>{
+ const g=new Game({walls:[],objects:[{type:2,x:10,y:17},{type:3,x:10,y:19}]});
+ const egg=g.rocks[0];
+ g.player.x=8;g.player.y=19;
+ assert.equal(g.move(1,0),true);g.tick();
+ assert.equal(egg.y,17,'Partial support still holds the egg');
+ assert.equal(g.move(1,0),true);
+ // Step out from underneath the egg before advancing gravity.
+ assert.equal(g.move(-1,0),true);assert.equal(g.move(-1,0),true);
+ g.tick();
+ assert.equal(egg.x,10);
+ assert.equal(egg.y,18);
+ assert.equal(egg.falling,true);
+});
 test('Player cannot move through a wall or push vertically',()=>{
  const g=new Game(level([{type:3,x:1,y:3}],[[3,1]]));assert.equal(g.move(1,0),false);assert.equal(g.move(0,1),false);assert.equal(g.player.x,1);assert.equal(g.player.y,1);
 });
