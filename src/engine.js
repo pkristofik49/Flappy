@@ -3,7 +3,7 @@ const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export class Game {
   constructor(level,{seed=12345}={}) {
     this.walls=new Set();this.rocks=[];this.enemies=[];this.mushrooms=[];this.shots=[];
-    this.player={x:1,y:1,w:2,h:2,dx:1,dy:0};this.goal=null;this.ammo=0;this.state='playing';this.ticks=0;this.seed=seed;this.reason='';
+    this.player={x:1,y:1,w:2,h:2,dx:1,dy:0,walking:false,walkFrame:0,walkTick:0};this.goal=null;this.ammo=0;this.state='playing';this.ticks=0;this.seed=seed;this.reason='';
     for(let x=0;x<WIDTH;x++){this.walls.add(`${x},0`);this.walls.add(`${x},${HEIGHT-1}`)}
     for(let y=0;y<HEIGHT;y++){this.walls.add(`0,${y}`);this.walls.add(`${WIDTH-1},${y}`)}
     for(const [x,y]of level.walls)for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)this.walls.add(`${x+dx},${y+dy}`);
@@ -21,7 +21,9 @@ export class Game {
   die(reason){if(this.state==='playing'){this.state='dead';this.reason=reason}}
   move(dx,dy){
     if(this.state!=='playing')return false;
-    const p=this.player;p.dx=dx;p.dy=dy;
+    const p=this.player;
+    const changedDirection=p.dx!==dx||p.dy!==dy;
+    p.dx=dx;p.dy=dy;p.walking=false;
     const target={...p,x:p.x+dx,y:p.y+dy};
     if(this.wallAt(target))return false;
     const rock=this.rockAt(target);
@@ -39,6 +41,8 @@ export class Game {
       this.enemies=this.enemies.filter(e=>!intersects(e,rock));
     }
     p.x=target.x;p.y=target.y;
+    p.walkFrame=changedDirection?1:(p.walkFrame+1)%4;
+    p.walkTick=this.ticks;p.walking=true;
     this.mushrooms=this.mushrooms.filter(m=>{if(intersects(p,m)){this.ammo++;this.event='collect';return false}return true});
     this.checkEnemies();this.checkGoal();return true;
   }
@@ -48,6 +52,7 @@ export class Game {
   tick(){
     if(this.state!=='playing')return;
     this.ticks++;
+    if(this.ticks-this.player.walkTick>=2)this.player.walking=false;
     for(const rock of [...this.rocks].sort((a,b)=>b.y-a.y)){
       let dest={...rock,y:rock.y+1};
       if(this.blocked(dest,rock)){

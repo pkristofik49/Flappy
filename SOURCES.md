@@ -26,6 +26,9 @@ Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mř
 Cílové vejce má zachovaný původní obrys, ale plnou bílou výplň, aby se v
 černobílém zobrazení jasně odlišilo od tečkovaných běžných kamenů. Bitmapy
 vejce a kamene v remasteru jsou stejné; samotný barevný rozdíl se do ČB nepřenáší.
+Chůze dolů používá původní čelní animační snímky. Další fáze kroku jsou
+odvozené z původních směrových bitmap: zachovávají hlavu a tělo, střídají nohy
+a přidávají mírné pohupování. Animace běží pouze při úspěšném pohybu.
 
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.

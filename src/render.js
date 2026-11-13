@@ -1,4 +1,27 @@
 import { sprites } from '../assets/game-data.js';
+// Preserve the native head and body. Two opposing steps use a raised body
+// and alternate the planted foot; the in-between poses bring the feet together.
+function stride(base,phase){
+  const frame=new Array(32).fill(0);
+  const lift=phase%2;
+  for(let row=0;row<14;row++){
+    const source=row+lift;
+    if(source<15){frame[row*2]=base[source*2];frame[row*2+1]=base[source*2+1]}
+  }
+  const feet=phase===1?[14,28,7,0]:phase===3?[14,28,0,56]:[24,6,48,3];
+  for(let i=0;i<4;i++)frame[28+i]=feet[i];
+  return frame;
+}
+const walkingSprites={
+  down:[sprites.front,sprites.walk1,stride(sprites.front,2),sprites.walk2],
+  up:[sprites.back,stride(sprites.back,1),stride(sprites.back,2),stride(sprites.back,3)],
+  left:[sprites.left,stride(sprites.left,1),stride(sprites.left,2),stride(sprites.left,3)],
+  right:[sprites.right,stride(sprites.right,1),stride(sprites.right,2),stride(sprites.right,3)]
+};
+export function playerSprite(player){
+  const direction=player.dx<0?'left':player.dx>0?'right':player.dy<0?'up':'down';
+  return walkingSprites[direction][player.walking?player.walkFrame:0];
+}
 // The remaster distinguishes these objects by colour, but their monochrome
 // bitmaps are identical. Keep the original outline and give the target egg
 // a solid white interior; ordinary stones retain their stippled texture.
@@ -26,7 +49,7 @@ export function render(ctx,game){
   for(const m of game.mushrooms)bitmap(ctx,[12,30,63,63,12,12,12,0],m.x*6,m.y*8,1,8);
   for(const r of game.rocks)bitmap(ctx,r.egg?targetEgg:sprites.rock,r.x*6,r.y*8);
   for(const e of game.enemies){bitmap(ctx,sprites[e.type],e.x*6,e.y*8,2,16,e.sleep?'#6f7c60':'#dfe7d5',e.dx<0);if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText('z',e.x*6+10,e.y*8+1)}}
-  const p=game.player;const sprite=p.dx<0?'left':p.dx>0?'right':p.dy<0?'back':game.ticks%4<2?'walk1':'walk2';
-  bitmap(ctx,sprites[sprite],p.x*6,p.y*8);
+  const p=game.player;
+  bitmap(ctx,playerSprite(p),p.x*6,p.y*8);
   for(const s of game.shots)bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8);
 }
