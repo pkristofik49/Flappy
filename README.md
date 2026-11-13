@@ -29,6 +29,8 @@ ani service worker.
 - Dostaň plné bílé vejce na cílovou podložku. Vejce i kameny padají,
   běžné kameny lze rozbít tlakem proti překážce ze strany nebo shora. Padající předměty drtí obludy
   i hráče. Houba nepřítele dočasně uspí.
+- Rozdrcený nepřítel se krátce zobrazí zploštělý. Kámen nad ním počká přibližně
+  0,6 sekundy herního času a po zmizení těla pokračuje v pádu; pauza časování zastaví.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
   postup se ukládají do localStorage na konkrétním zařízení/prohlížeči.
 

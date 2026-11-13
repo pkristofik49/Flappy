@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {Game} from '../src/engine.js';
+import {Game,CRUSH_TICKS} from '../src/engine.js';
 import {levels} from '../assets/game-data.js';
 const level=(objects=[],walls=[])=>({objects:[{type:2,x:15,y:10},{type:6,x:25,y:21},...objects],walls});
 test('All 200 original scenes load with an accessible spawn',()=>{
@@ -116,8 +116,42 @@ test('A falling stone cannot be crushed by a horizontal push',()=>{
 test('A falling stone crushes the player',()=>{
  const g=new Game(level([{type:3,x:5,y:1}]));g.player.x=5;g.player.y=3;g.tick();assert.equal(g.state,'dead');
 });
-test('A falling stone removes an enemy',()=>{
- const g=new Game(level([{type:3,x:5,y:1},{type:5,x:5,y:3}]));g.tick();assert.equal(g.enemies.length,0);
+test('A falling stone or egg leaves a flattened enemy, waits, then continues falling',()=>{
+ for(const rockType of [2,3])for(const enemyType of [4,5]){
+  const g=new Game({walls:[],objects:[{type:rockType,x:5,y:1},{type:enemyType,x:5,y:3}]});
+  const rock=g.rocks[0];g.tick();
+  assert.equal(g.enemies.length,0);assert.equal(g.corpses.length,1);
+  const corpse=g.corpses[0];
+  assert.deepEqual({x:corpse.x,y:corpse.y,w:corpse.w,h:corpse.h},{x:5,y:4,w:2,h:1});
+  assert.equal(corpse.crushed,true);assert.equal(corpse.type,enemyType===4?'frog':'ghost');
+  assert.equal(rock.y,2);assert.equal(g.event,'crush');
+  for(let i=1;i<CRUSH_TICKS;i++){
+   g.event=null;g.tick();
+   assert.equal(g.corpses.length,1);assert.equal(rock.y,2);
+   assert.notEqual(g.event,'crush','The hit must not restart on every tick');
+  }
+  g.tick();assert.equal(g.corpses.length,0);assert.equal(rock.y,3);assert.equal(rock.falling,true);
+ }
+});
+
+test('Flattened enemies cannot move, hurt Flappy or be put back to sleep',()=>{
+ const g=new Game({walls:[],objects:[{type:3,x:5,y:1},{type:5,x:5,y:3}]});g.tick();
+ const corpse=g.corpses[0];
+ g.player.x=7;g.player.y=4;
+ assert.equal(g.move(-1,0),true);assert.equal(g.state,'playing');
+ g.shots.push({x:corpse.x,y:corpse.y,w:1,h:1,dx:1,dy:0,life:3});
+ g.tick();
+ assert.equal(g.enemies.length,0);assert.equal(corpse.sleep,undefined);
+ assert.equal(g.state,'playing');assert.equal(corpse.x,5);assert.equal(corpse.y,4);
+});
+
+test('A stack of stones waits above the corpse without recreating it',()=>{
+ const g=new Game({walls:[],objects:[{type:3,x:5,y:1},{type:3,x:5,y:3},{type:5,x:5,y:5}]});
+ g.tick();const corpse=g.corpses[0];
+ assert.equal(g.rocks[1].y,4);
+ for(let i=1;i<CRUSH_TICKS;i++){g.tick();assert.equal(g.corpses[0],corpse);assert.equal(g.rocks[1].y,4)}
+ g.tick();assert.equal(g.corpses.length,0);assert.equal(g.rocks[1].y,5);
+ assert.ok(g.rocks[0].y+2<=g.rocks[1].y);
 });
 test('Egg resting above the goal completes the scene',()=>{
  const g=new Game({walls:[],objects:[{type:2,x:15,y:19},{type:6,x:15,y:21}]});g.tick();assert.equal(g.state,'won');

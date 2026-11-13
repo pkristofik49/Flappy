@@ -36,6 +36,7 @@ const frogPoses={
   right:{idle:sprites.frogRight,step:sprites.frogRightStep,width:3,height:16,x:-6,y:0}
 };
 export function enemySprite(enemy,ticks){
+  if(enemy.crushed)return {data:sprites[enemy.type+'Crushed'],width:2,height:8,x:0,y:0,flip:false};
   if(enemy.type!=='frog')return {data:sprites.ghost,width:2,height:16,x:0,y:0,flip:enemy.dx>0};
   const direction=enemy.dx<0?'left':enemy.dx>0?'right':enemy.dy<0?'up':'down';
   const pose=frogPoses[direction];
@@ -69,7 +70,7 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'])
   if(game.goal){const{x,y}=game.goal;ctx.fillStyle='#fafcf3';ctx.fillRect(x*6,y*8,12,8);ctx.fillStyle='#5e6a51';for(let i=0;i<12;i+=2)ctx.fillRect(x*6+i,y*8,1,8)}
   for(const m of game.mushrooms)bitmap(ctx,[12,30,63,63,12,12,12,0],m.x*6,m.y*8,1,8);
   for(const r of game.rocks)bitmap(ctx,r.egg?targetEgg:sprites.rock,r.x*6,r.y*8);
-  for(const e of game.enemies){
+  for(const e of [...game.enemies,...game.corpses]){
     const pose=enemySprite(e,game.ticks);
     bitmap(ctx,pose.data,e.x*6+pose.x,e.y*8+pose.y,pose.width,pose.height,e.sleep?'#6f7c60':'#dfe7d5',pose.flip);
     if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText(sleepMarker,e.x*6+10,e.y*8+1)}

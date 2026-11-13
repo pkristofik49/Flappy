@@ -27,6 +27,7 @@ zvětšené čtyřikrát bez vyhlazování. Řádky shora:
 7. Žába nahoru — postoj / skok.
 8. Žába dolů — postoj / skok.
 9. Duch vlevo / vpravo.
+10. Rozdrcený duch / žába — původní zploštělé bitmapy 12 × 8 pixelů.
 
 Přehled je pouze náhled pro prohlížení; hra vykresluje přímo pole bitmap.
 Po úpravě snímků ho obnov příkazem `node tools/sprite-sheet.mjs`.

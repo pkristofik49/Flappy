@@ -34,6 +34,10 @@ je v `assets/README.md`, obrazový náhled v `assets/sprites.png`.
 Žába používá osm původních bitmap: klidový postoj a fázi skoku pro každý ze
 čtyř směrů. Rozšířené skokové snímky se vykreslují v původní velikosti
 12 × 24 nebo 18 × 16 pixelů; kolizní rozměry zůstávají stejné.
+Rozdrcení nepřátelé používají původní zploštělé bitmapy 12 × 8 pixelů:
+duch na adrese `0x2731`, žába `0x2952` v paměťovém obrazu FLAPPY2k.
+Zůstávají viditelní 600 ms herního času; padající předmět po jejich zmizení
+pokračuje dolů. Jde o novou implementaci časování, nikoli emulaci originálu.
 Úvodní obrazovka `assets/title-screen.png` pochází rovněž z pásky FLAPPY2k.
 Je dekódována přímo z obrazového bloku, bez emulace nebo úprav kresby, a
 uložena v černobílém rozlišení PMD 288 × 256. Obnoví ji příkaz

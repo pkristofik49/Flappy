@@ -139,5 +139,20 @@ try{
   return results;
  })()`);
  assert.ok(Object.values(audible).every(rms=>rms>.0001),'Every effect must produce non-silent audio');
- assert.deepEqual(errors,[]);console.log('Browser OK: title/start controls, CS/EN switching and persistence, localized notices/ARIA/manifests, layouts 320–1440px, offline languages and 11 real Web Audio effects.');
+ const crushSequence=await evaluate(`(async()=>{
+  const {Game,CRUSH_TICKS}=await import('./src/engine.js');
+  const {render}=await import('./src/render.js');
+  const scene=document.createElement('canvas');scene.width=240;scene.height=176;
+  const strip=document.createElement('canvas');strip.width=288;strip.height=224;
+  const ctx=strip.getContext('2d');ctx.imageSmoothingEnabled=false;
+  const g=new Game({walls:[],objects:[{type:3,x:5,y:1},{type:5,x:5,y:3}]});
+  function snapshot(index){render(scene.getContext('2d'),g);ctx.drawImage(scene,24,0,24,56,index*96,0,96,224)}
+  snapshot(0);g.tick();snapshot(1);
+  const corpseVisible=g.corpses.length===1&&g.rocks[0].y===2;
+  for(let i=0;i<CRUSH_TICKS;i++)g.tick();snapshot(2);
+  return {image:strip.toDataURL(),corpseVisible,continued:g.corpses.length===0&&g.rocks[0].y>2};
+ })()`);
+ assert.equal(crushSequence.corpseVisible,true);assert.equal(crushSequence.continued,true);
+ fs.writeFileSync('test-results/crush-sequence.png',Buffer.from(crushSequence.image.split(',')[1],'base64'));
+ assert.deepEqual(errors,[]);console.log('Browser OK: title/start controls, CS/EN and offline persistence, layouts, real Web Audio effects and original crushed-enemy rendering.');
 }finally{if(instrumentId)await call('Page.removeScriptToEvaluateOnNewDocument',{identifier:instrumentId}).catch(()=>{});await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(()=>{});ws.close()}

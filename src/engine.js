@@ -1,8 +1,9 @@
 export const WIDTH = 40, HEIGHT = 22;
+export const CRUSH_TICKS = 5; // 600 ms of game time; paused together with the scene.
 const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export class Game {
   constructor(level,{seed=12345}={}) {
-    this.walls=new Set();this.rocks=[];this.enemies=[];this.mushrooms=[];this.shots=[];
+    this.walls=new Set();this.rocks=[];this.enemies=[];this.corpses=[];this.mushrooms=[];this.shots=[];
     this.player={x:1,y:1,w:2,h:2,dx:1,dy:0,walking:false,walkFrame:0,walkTick:0};this.goal=null;this.ammo=0;this.state='playing';this.ticks=0;this.seed=seed;this.reason='';
     for(let x=0;x<WIDTH;x++){this.walls.add(`${x},0`);this.walls.add(`${x},${HEIGHT-1}`)}
     for(let y=0;y<HEIGHT;y++){this.walls.add(`0,${y}`);this.walls.add(`${WIDTH-1},${y}`)}
@@ -61,6 +62,7 @@ export class Game {
   tick(){
     if(this.state!=='playing')return;
     this.ticks++;
+    this.corpses=this.corpses.filter(corpse=>--corpse.life>0);
     if(this.ticks-this.player.walkTick>=2)this.player.walking=false;
     for(const rock of [...this.rocks].sort((a,b)=>b.y-a.y)){
       const dest={...rock,y:rock.y+1};
@@ -70,10 +72,15 @@ export class Game {
         // A supporting stone holds the object in place; gravity never moves it sideways.
         continue;
       }
+      // The flattened creature briefly supports the stone before disappearing.
+      if(this.corpses.some(corpse=>intersects(dest,corpse)))continue;
       if(intersects(dest,this.player)){this.die('death.falling');return}
-      const enemyCount=this.enemies.length;
-      this.enemies=this.enemies.filter(e=>!intersects(dest,e));
-      if(this.enemies.length<enemyCount)this.event='crush';
+      const crushed=this.enemies.filter(e=>intersects(dest,e));
+      if(crushed.length){
+        for(const enemy of crushed)this.corpses.push({type:enemy.type,x:enemy.x,y:enemy.y+1,w:2,h:1,crushed:true,life:CRUSH_TICKS});
+        this.enemies=this.enemies.filter(e=>!crushed.includes(e));
+        this.event='crush';
+      }
       rock.x=dest.x;rock.y=dest.y;rock.falling=true;
       this.checkGoal();if(this.state!=='playing')return;
     }

@@ -108,3 +108,12 @@ test('The ghost keeps facing left natively and mirrors only when moving right',(
   assert.equal(pose.data,sprites.ghost);assert.equal(pose.flip,dx>0);
  }
 });
+
+test('Crushed frogs and ghosts use the original flattened 12 by 8 bitmap',()=>{
+ for(const type of ['frog','ghost']){
+  const corpse=enemySprite({type,crushed:true},0);
+  assert.equal(corpse.data,sprites[type+'Crushed']);
+  assert.equal(corpse.data.length,16);assert.equal(corpse.width,2);assert.equal(corpse.height,8);
+  assert.equal(corpse.flip,false);
+ }
+});

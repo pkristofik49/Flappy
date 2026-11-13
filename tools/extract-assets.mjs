@@ -22,6 +22,8 @@ const offsets={rock:0x2389,egg:0x2368,front:0x24a0,walk1:0x24c1,walk2:0x24e2,lef
 const sprites={};for(const [name,offset]of Object.entries(offsets))sprites[name]=[...m.subarray(offset,offset+32)];
 // Native extended poses use 12 x 24 (vertical) or 18 x 16 (horizontal) pixels.
 for(const [name,offset]of Object.entries({leftStep:0x2503,rightStep:0x241d,frogDownStep:0x27c6,frogUpStep:0x2818,frogLeftStep:0x286a,frogRightStep:0x28bc}))sprites[name]=[...m.subarray(offset,offset+48)];
+// Flattened enemies occupy only the bottom PMD cell (12 x 8 pixels).
+for(const [name,offset]of Object.entries({ghostCrushed:0x2731,frogCrushed:0x2952}))sprites[name]=[...m.subarray(offset,offset+16)];
 // Native 6-pixel PMD character cells, two bytes per scanline.
 sprites.brick=[...m.subarray(0x234f,0x2357)];
 fs.mkdirSync('assets',{recursive:true});
