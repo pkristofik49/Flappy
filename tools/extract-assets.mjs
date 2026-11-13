@@ -18,7 +18,7 @@ for(let n=1;n<=200;n++){
  if(objects.at(-1).type!==6)throw Error('Missing goal');
  levels.push({walls,objects});
 }
-const offsets={rock:0x2389,egg:0x2368,front:0x24a0,walk1:0x24c1,walk2:0x24e2,left:0x244e,right:0x2534,back:0x23fc,ghost:0x26cc,frog:0x27f7};
+const offsets={rock:0x2389,egg:0x2368,front:0x24a0,walk1:0x24c1,walk2:0x24e2,left:0x2534,right:0x244e,back:0x23fc,ghost:0x26cc,frog:0x27f7};
 const sprites={};for(const [name,offset]of Object.entries(offsets))sprites[name]=[...m.subarray(offset,offset+32)];
 // Native 6-pixel PMD character cells, two bytes per scanline.
 sprites.brick=[...m.subarray(0x234f,0x2357)];
