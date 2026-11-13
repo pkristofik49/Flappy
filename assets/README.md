@@ -31,12 +31,17 @@ pro každý směr; zadní pohled ukazuje záda bez obličeje.
 Moderní režim renderuje plochu v rozlišení 960 × 800 se zachováním stejné
 herní mřížky a kolizí. Zdivo je kreslené přes Canvas jako červené cihly ve dvou
 řadách na buňku, s půlcihlovým posunem svislých spár a světlou horní hranou.
+Cílové políčko v PC používá stejnou cihlovou kresbu v modré a azurové paletě
+krystalu, včetně tmavých spár a světlých hran.
 Ukazatele používají vyhlazené systémové písmo Arial bez dalších fontových souborů.
 `src/motion.js` interpoluje pozice všech pohyblivých objektů; fáze kroků, poskoky
 žab a vznášení duchů se vykreslují na snímcích prohlížeče. Kolizní mřížka zůstává
 stejná. Při smrti se obraz zarovná s místem kolize, při pauze se hodiny animací zastaví.
 
 ## PMD 85-1 a PMD-85-3
+
+V PMD 85-1 mají zdi i rozbitné kameny tmavší odstín `#aab2a2`, stejný jako
+nápis VBG-SOFT. Cílový kámen zůstává světlý pro snadné rozlišení.
 
 `title-screen.png` je původní úvodní obrazovka Flappy od VBG Software (1987),
 stažená beze změn ze [souboru Vbg_flappy_3.png na PMD 85 Infoserveru](https://pmd85.borik.net/w/images/b/bc/Vbg_flappy_3.png).
