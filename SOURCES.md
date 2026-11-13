@@ -29,6 +29,9 @@ vejce a kamene v remasteru jsou stejné; samotný barevný rozdíl se do ČB nep
 Chůze dolů používá původní čelní animační snímky. Další fáze kroku jsou
 odvozené z původních směrových bitmap: zachovávají hlavu a tělo, střídají nohy
 a přidávají mírné pohupování. Animace běží pouze při úspěšném pohybu.
+Žába používá osm původních bitmap: klidový postoj a fázi skoku pro každý ze
+čtyř směrů. Rozšířené skokové snímky se vykreslují v původní velikosti
+12 × 24 nebo 18 × 16 pixelů; kolizní rozměry zůstávají stejné.
 
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.

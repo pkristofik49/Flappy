@@ -22,6 +22,20 @@ export function playerSprite(player){
   const direction=player.dx<0?'left':player.dx>0?'right':player.dy<0?'up':'down';
   return walkingSprites[direction][player.walking?player.walkFrame:0];
 }
+const frogPoses={
+  down:{idle:sprites.frog,step:sprites.frogDownStep,width:2,height:24,x:0,y:-8},
+  up:{idle:sprites.frogUp,step:sprites.frogUpStep,width:2,height:24,x:0,y:0},
+  left:{idle:sprites.frogLeft,step:sprites.frogLeftStep,width:3,height:16,x:0,y:0},
+  right:{idle:sprites.frogRight,step:sprites.frogRightStep,width:3,height:16,x:-6,y:0}
+};
+export function enemySprite(enemy,ticks){
+  if(enemy.type!=='frog')return {data:sprites.ghost,width:2,height:16,x:0,y:0,flip:enemy.dx>0};
+  const direction=enemy.dx<0?'left':enemy.dx>0?'right':enemy.dy<0?'up':'down';
+  const pose=frogPoses[direction];
+  const hopping=!enemy.sleep&&Number.isInteger(enemy.stepTick)&&ticks>=enemy.stepTick&&ticks-enemy.stepTick<2;
+  return hopping?{data:pose.step,width:pose.width,height:pose.height,x:pose.x,y:pose.y,flip:false}
+    :{data:pose.idle,width:2,height:16,x:0,y:0,flip:false};
+}
 // The remaster distinguishes these objects by colour, but their monochrome
 // bitmaps are identical. Keep the original outline and give the target egg
 // a solid white interior; ordinary stones retain their stippled texture.
@@ -48,8 +62,11 @@ export function render(ctx,game){
   if(game.goal){const{x,y}=game.goal;ctx.fillStyle='#fafcf3';ctx.fillRect(x*6,y*8,12,8);ctx.fillStyle='#5e6a51';for(let i=0;i<12;i+=2)ctx.fillRect(x*6+i,y*8,1,8)}
   for(const m of game.mushrooms)bitmap(ctx,[12,30,63,63,12,12,12,0],m.x*6,m.y*8,1,8);
   for(const r of game.rocks)bitmap(ctx,r.egg?targetEgg:sprites.rock,r.x*6,r.y*8);
-  // The native ghost faces left; mirror it only when travelling right.
-  for(const e of game.enemies){bitmap(ctx,sprites[e.type],e.x*6,e.y*8,2,16,e.sleep?'#6f7c60':'#dfe7d5',e.dx>0);if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText('z',e.x*6+10,e.y*8+1)}}
+  for(const e of game.enemies){
+    const pose=enemySprite(e,game.ticks);
+    bitmap(ctx,pose.data,e.x*6+pose.x,e.y*8+pose.y,pose.width,pose.height,e.sleep?'#6f7c60':'#dfe7d5',pose.flip);
+    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font='6px monospace';ctx.fillText('z',e.x*6+10,e.y*8+1)}
+  }
   const p=game.player;
   bitmap(ctx,playerSprite(p),p.x*6,p.y*8);
   for(const s of game.shots)bitmap(ctx,[12,30,63,12,12,0,0,0],s.x*6,s.y*8,1,8);

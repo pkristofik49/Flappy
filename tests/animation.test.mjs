@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Game} from '../src/engine.js';
-import {playerSprite} from '../src/render.js';
+import {playerSprite,enemySprite} from '../src/render.js';
 import {sprites} from '../assets/game-data.js';
 
 const empty=()=>new Game({walls:[],objects:[]});
@@ -49,5 +49,48 @@ test('Changing direction starts a new gait facing the new direction',()=>{
   game.move(dx,dy);
   assert.equal(game.player.walkFrame,1);
   assert.equal(game.player.dx,dx);assert.equal(game.player.dy,dy);
+ }
+});
+
+test('Frogs have distinct original idle and hopping graphics in all four directions',()=>{
+ const idlePoses=new Set(),hoppingPoses=new Set();
+ for(const [name,dx,dy]of directions){
+  const frog={type:'frog',dx,dy,sleep:0};
+  const idle=enemySprite(frog,0);
+  const expected=name==='down'?sprites.frog:sprites['frog'+name[0].toUpperCase()+name.slice(1)];
+  assert.deepEqual(idle.data,expected,name);
+  idlePoses.add(JSON.stringify(idle.data));
+  frog.stepTick=5;
+  const hop=enemySprite(frog,5);
+  assert.equal(hop.data.length,hop.width*hop.height);
+  assert.equal(hop.data.length,48,'The extended hopping pose must not be cropped');
+  assert.deepEqual([hop.width,hop.height],dx?[3,16]:[2,24]);
+  assert.notDeepEqual(hop.data,idle.data,name);
+  hoppingPoses.add(JSON.stringify(hop.data));
+  assert.deepEqual(enemySprite(frog,7),idle,'A completed hop returns to the directional idle pose');
+  frog.sleep=10;assert.deepEqual(enemySprite(frog,5),idle,'Sleeping frogs do not hop');
+ }
+ assert.equal(idlePoses.size,4);assert.equal(hoppingPoses.size,4);
+});
+
+test('Frog hopping starts only on a successful move and stops when a wall blocks it',()=>{
+ const game=new Game({walls:[[13,10]],objects:[{type:4,x:10,y:10}]});
+ game.random=()=>1;
+ const frog=game.enemies[0];
+ for(let i=0;i<5;i++)game.tick();
+ assert.equal(frog.x,11);
+ assert.equal(frog.stepTick,5);
+ assert.equal(enemySprite(frog,game.ticks).data.length,48);
+ for(let i=0;i<5;i++)game.tick();
+ assert.equal(frog.x,11);
+ assert.equal(frog.dx,-1);
+ assert.equal(frog.stepTick,undefined);
+ assert.deepEqual(enemySprite(frog,game.ticks).data,sprites.frogLeft);
+});
+
+test('The ghost keeps facing left natively and mirrors only when moving right',()=>{
+ for(const dx of [-1,1]){
+  const pose=enemySprite({type:'ghost',dx,dy:0,sleep:0},0);
+  assert.equal(pose.data,sprites.ghost);assert.equal(pose.flip,dx>0);
  }
 });

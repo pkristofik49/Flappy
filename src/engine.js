@@ -91,7 +91,7 @@ export class Game {
         else if(this.random()<.25)dx=-dx;
       }else if(this.random()<.4){const dirs=[[0,1],[0,-1],[1,0],[-1,0]];[dx,dy]=dirs[Math.floor(this.random()*4)]}
       const dest={...e,x:e.x+dx,y:e.y+dy};
-      if(!this.blocked(dest)&&!this.enemies.some(other=>other!==e&&intersects(dest,other))){e.x=dest.x;e.y=dest.y;e.dx=dx;e.dy=dy}else{e.dx=-dx;e.dy=-dy}
+      if(!this.blocked(dest)&&!this.enemies.some(other=>other!==e&&intersects(dest,other))){e.x=dest.x;e.y=dest.y;e.dx=dx;e.dy=dy;e.stepTick=this.ticks}else{e.dx=-dx;e.dy=-dy;e.stepTick=undefined}
     }
     this.checkEnemies();this.checkGoal();
   }
