@@ -14,7 +14,7 @@ async function password(code){
  await call('Input.insertText',{text:code});
  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:13});
  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});
- await until(`document.querySelector('#password-feedback').textContent.length>0`);
+ await until(`!document.querySelector('#sector-password').value || document.querySelector('#sector-password').getAttribute('aria-invalid')==='true'`);
 }
 const options=()=>evaluate(`Array.from(document.querySelectorAll('[data-sector]:not(:disabled)'),b=>Number(b.dataset.sector))`);
 async function open(){await evaluate(`document.querySelector('.sector-toggle').click()`);await until(`!!document.querySelector('#sector-password')`)}
@@ -32,10 +32,12 @@ try{
  await open();
  assert.deepEqual(await options(),[1]);assert.equal(await evaluate(`document.querySelector('.status')`),null);
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.intro>p')).fontFamily`),await evaluate(`getComputedStyle(document.querySelector('.about p')).fontFamily`));
- await password('xxxxx');assert.match(await evaluate(`document.querySelector('#password-feedback').textContent`),/není platné/);assert.deepEqual(await options(),[1]);
+ await password('xxxxx');assert.equal(await evaluate(`document.querySelector('#sector-password').getAttribute('aria-invalid')`),'true');assert.deepEqual(await options(),[1]);
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('#sector-password')).borderTopColor`),'rgb(213, 156, 132)','Invalid passwords keep the red border');
  await password(':beda');assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'ready');
  assert.deepEqual(await options(),[1,36,37,38,39,40]);assert.equal(await evaluate(`document.querySelector('.game-hud span:first-child b').textContent`),'001');
- assert.match(await evaluate(`document.querySelector('#password-feedback').textContent`),/036–040/);
+ assert.equal(await evaluate(`document.querySelector('#password-feedback')`),null,'Successful unlocking adds no feedback text');
+ assert.equal(await evaluate(`document.querySelector('#sector-password').getAttribute('aria-invalid')`),'false');
  assert.equal(await evaluate(`JSON.parse(localStorage.getItem('flappy-pmd85-progress-v1')).scene`),1,'A password must not start a sector');
  assert.equal(await evaluate(`(()=>{const f=document.querySelector('.sector-footer').getBoundingClientRect(),p=document.querySelector('.password-form').getBoundingClientRect(),s=document.querySelector('.sector-progress').getBoundingClientRect();return Math.abs(f.right-p.right)<1&&s.right<p.left&&s.top<p.bottom&&s.bottom>p.top})()`),true,'Password is right aligned on the progress row');
  await snapshot('password-overlay-desktop.png');
@@ -43,7 +45,7 @@ try{
  await evaluate(`document.querySelector('.language-menu-toggle').click()`);await until(`document.querySelector('.language-menu-toggle').getAttribute('aria-expanded')==='true'`);
  await evaluate(`document.querySelector('[data-language="en"]').click()`);await until(`document.documentElement.lang==='en'`);
  await open();await password('xxxxx');
- assert.equal(await evaluate(`document.querySelector('#password-feedback').textContent`),'Invalid password.');
+ assert.equal(await evaluate(`document.querySelector('#password-feedback')`),null,'Invalid codes only set the input border');
  assert.equal(await evaluate(`document.querySelector('#sector-password').getAttribute('aria-invalid')`),'true');
  await evaluate(`document.querySelector('[data-sector="1"]').click()`);await until(`document.querySelector('canvas').dataset.state==='playing'`);
  await open();const frozen=await evaluate(`document.querySelector('canvas').toDataURL()`);
@@ -74,7 +76,7 @@ try{
  await evaluate(`document.querySelector('#sector-password').value='SHIBA';document.querySelector('#sector-password').dispatchEvent(new Event('input',{bubbles:true}))`);
  const point=await evaluate(`(()=>{const r=document.querySelector('.password-submit').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);
  await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
- await until(`document.querySelector('#password-feedback').textContent.includes('001–005')`);
+ await until(`!document.querySelector('[data-sector="5"]').disabled`);
  assert.equal(await evaluate(`document.querySelector('[data-sector="5"]').disabled`),false);
  assert.equal(await evaluate(`document.querySelector('canvas').dataset.state`),'paused');
  assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true);

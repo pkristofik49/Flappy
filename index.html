@@ -61,12 +61,11 @@
                   <small class="sector-progress">{{ t('scene.unlocked', {count: accessibleScenes.length}) }}</small>
                   <form class="password-form" @submit.prevent="openPassword" novalidate>
                     <label for="sector-password">{{ t('password.label') }}</label>
-                    <input id="sector-password" v-model="passwordInput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" :spellcheck="false" :aria-invalid="passwordMessage === 'password.invalid'" aria-describedby="password-hint password-feedback" @input="passwordMessage = ''">
+                    <input id="sector-password" v-model="passwordInput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" :spellcheck="false" :aria-invalid="passwordInvalid" aria-describedby="password-hint" @input="passwordInvalid = false">
                     <button class="password-submit" type="submit">{{ t('password.submit') }}</button>
                     <span id="password-hint" class="sr-only">{{ t('password.hint') }}</span>
                   </form>
                 </div>
-                <p v-show="passwordMessage" id="password-feedback" class="password-feedback" :class="{invalid: passwordMessage === 'password.invalid'}" role="status">{{ passwordMessage ? t(passwordMessage, passwordRange) : '' }}</p>
               </section>
             </div>
           </div>

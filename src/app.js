@@ -22,7 +22,7 @@ createApp({setup(){
   const sectorMenuOpen=ref(false),sectorTrigger=ref(null),sectorGrid=ref(null),sectorOverlay=ref(null);
   let sectorAutoPaused=false;
   const mode=ref('ready'),lives=ref(5),ammo=ref(0),remaining=ref(360),sound=ref(loadSound()),installPrompt=ref(null),message=ref(''),notice=ref('');
-  const passwordInput=ref(''),passwordMessage=ref(''),passwordRange=ref({first:'',last:''});
+  const passwordInput=ref(''),passwordInvalid=ref(false);
   const transitionPhase=ref('');
   const deathReady=ref(false);
   const languageMenuOpen=ref(false),languagePicker=ref(null),languageMenuButton=ref(null);
@@ -70,7 +70,7 @@ createApp({setup(){
     closeMenus();
     sectorAutoPaused=['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value);
     if(sectorAutoPaused)togglePause();
-    held=null;release();passwordMessage.value='';sectorMenuOpen.value=true;
+    held=null;release();passwordInvalid.value=false;sectorMenuOpen.value=true;
     await nextTick();sectorGrid.value?.querySelector(`[data-sector="${scene.value}"]`)?.focus({preventScroll:true});
     sectorGrid.value?.querySelector(`[data-sector="${scene.value}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});
   }
@@ -162,10 +162,9 @@ createApp({setup(){
   }
   function openPassword(){
     const found=findSectorPassword(passwordInput.value);
-    if(!found){passwordMessage.value='password.invalid';return}
+    if(!found){passwordInvalid.value=true;return}
     bonusScenes.value=[...new Set([...bonusScenes.value,...Array.from({length:found.last-found.first+1},(_,i)=>found.first+i)])];
-    passwordRange.value={first:String(found.first).padStart(3,'0'),last:String(found.last).padStart(3,'0')};
-    passwordMessage.value='password.opened';passwordInput.value='';save();
+    passwordInvalid.value=false;passwordInput.value='';save();
   }
   function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});motion.reset(game);remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
   function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t(retroModes.includes(graphics.value)?'game.originalCredit':'game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
@@ -277,5 +276,5 @@ createApp({setup(){
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
   onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
-  return{sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordMessage,passwordRange,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  return{sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordInvalid,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');
