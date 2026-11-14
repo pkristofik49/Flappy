@@ -23,6 +23,7 @@ ani service worker.
 ## Hraní
 
 - Úvodní obrazovka podle zvoleného grafického režimu: klikni, klepni nebo stiskni mezerník pro spuštění hry.
+- Kliknutí na záhlaví herního okna vrátí úvodní obrazovku. Vybraný sektor a odemčený postup zůstanou uložené.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
@@ -37,6 +38,11 @@ ani service worker.
   0,6 sekundy herního času a po zmizení těla pokračuje v pádu; pauza časování zastaví.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
   postup se ukládají do localStorage na konkrétním zařízení/prohlížeči.
+- Pod výběrem sektoru lze zadat původní pětiznakové heslo ze
+  [seznamu PMD 85](https://www.pmd85.cz/wp-content/uploads/hesla.txt).
+  Odemkne přesně příslušnou pětici sektorů a spustí její první místnost.
+  Velikost písmen nerozhoduje, interpunkce je součástí hesla. Odemčení zůstává
+  uložené i pro offline hraní; ostatní neodehrané sektory zůstávají zamčené.
 - Životy, sektor a čas jsou vykreslené přímo v horním zdivu herního Canvasu.
   Pod nápisem SEKTOR je za každou nasbíranou houbu jedna její ikona. Po výstřelu
   ikona zmizí. Počet hub ani doplňkový slogan se pod herní plochou nezobrazují.
@@ -144,9 +150,12 @@ Ikona palety v horním menu nebo **G** otevře výběr:
 - **Nintendo NES** — červené cihly se světlými spárami, světlá postava a odlišné
   původní kameny a nepřátelé.
 - **PC** — nové kreslené sprity z `assets/modern-sprites.png`,
-  vykreslované do Canvasu 960 × 800 místo původních 240 × 200 pixelů.
+  vykreslované do Canvasu 1280 × 800 místo původních 240 × 200 pixelů.
+  Herní plocha i úvod mají poměr 16:10, stejný jako herní plocha NES.
   Flappy má podobu krtka s růžovým čumákem a hrabavými tlapkami; zdi tvoří
   červené cihly se střídavě posunutými spárami.
+  Chůze vlevo a vpravo používá osm fází pro každý směr ze samostatného atlasu
+  `assets/modern-mole-walk.png`, se střídáním přední a zadní tlapky.
   Cílový předmět používá samostatný modrý krystal z `assets/modern-crystal.png`.
   Sektor a čas mají vyhlazené písmo; postava, krystal, kameny, nepřátelé a střely
   se pohybují plynule mezi políčky pomocí `requestAnimationFrame`. Žáby při pohybu

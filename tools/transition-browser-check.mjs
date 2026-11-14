@@ -29,8 +29,8 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1100,deviceScaleFactor:1,mobile:false});
  await call('Page.navigate',{url:process.argv[2]||'http://127.0.0.1:4173/Flappy/'});
  await until(`document.querySelector('#app') && !document.querySelector('#app').hasAttribute('v-cloak')`);
- saved=await evaluate(`Object.fromEntries(['flappy-pmd85-progress-v1','flappy.language','flappy.sound'].map(key=>[key,localStorage.getItem(key)]))`);
- await evaluate(`localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:1,unlocked:1}));localStorage.setItem('flappy.language','cs');localStorage.setItem('flappy.sound','false')`);
+ saved=await evaluate(`Object.fromEntries(['flappy-pmd85-progress-v1','flappy.language','flappy.sound','flappy.graphics'].map(key=>[key,localStorage.getItem(key)]))`);
+ await evaluate(`localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:1,unlocked:1}));localStorage.setItem('flappy.language','cs');localStorage.setItem('flappy.sound','false');localStorage.setItem('flappy.graphics','mono')`);
  await call('Network.setBypassServiceWorker',{bypass:true});await call('Network.setCacheDisabled',{cacheDisabled:true});
  await call('Fetch.enable',{patterns:[{urlPattern:'*assets/game-data.js*',requestStage:'Request'}]});
  await call('Page.reload',{ignoreCache:true});
@@ -61,7 +61,7 @@ try{
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),5);
  assert.equal(await evaluate(`document.querySelector('#scene').value`),'2');
- assert.deepEqual(await evaluate(`JSON.parse(localStorage.getItem('flappy-pmd85-progress-v1'))`),{scene:2,unlocked:2});
+ assert.deepEqual(await evaluate(`JSON.parse(localStorage.getItem('flappy-pmd85-progress-v1'))`),{scene:2,unlocked:2,bonus:[]});
  // Completion of the final scene must stop on the victory screen.
  await evaluate(`localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:200,unlocked:200}))`);
  await call('Page.reload',{ignoreCache:true});

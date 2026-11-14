@@ -5,7 +5,7 @@ import fs from 'node:fs';
 const pages=await(await fetch('http://127.0.0.1:9222/json')).json();
 const page=pages.find(p=>p.type==='page');assert.ok(page,'Chrome debugging page');
 const ws=new WebSocket(page.webSocketDebuggerUrl);await new Promise(r=>ws.addEventListener('open',r,{once:true}));
-let id=0,instrumentId;const pending=new Map(),errors=[];
+let id=0,instrumentId,saved;const pending=new Map(),errors=[];
 ws.addEventListener('message',event=>{const m=JSON.parse(event.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(Error(JSON.stringify(m.error))):p.resolve(m.result)}if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.text+': '+m.params.exceptionDetails.exception?.description)});
 function call(method,params={}){return new Promise((resolve,reject)=>{const key=++id;pending.set(key,{resolve,reject});ws.send(JSON.stringify({id:key,method,params}))})}
 async function evaluate(expression){const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value}
@@ -35,6 +35,9 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
  await call('Page.navigate',{url:testUrl});
  await until(titleReady);
+ saved=await evaluate(`JSON.stringify({...localStorage})`);
+ await evaluate(`localStorage.setItem('flappy.graphics','mono');localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:1,unlocked:1}))`);
+ await call('Page.reload');await delay(150);await until(titleReady);
  await chooseLanguage('cs');
  await until(`document.documentElement.lang==='cs'`);
  assert.equal(await evaluate('window.__flappyAudioContexts.length'),0,'Page loading must not initialize audio');
@@ -83,7 +86,7 @@ try{
  await evaluate(`navigator.serviceWorker.ready.then(()=>true)`);await until('!!navigator.serviceWorker.controller');
  await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await call('Page.reload');
  await until(titleReady);
- assert.equal(await evaluate(`document.querySelector('.status').textContent`),'OFFLINE REŽIM');
+ assert.equal(await evaluate(`document.querySelector('.status')`),null,'The header status text and dot are removed');
  await evaluate(`document.querySelector('.title-screen').focus()`);
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'Space',key:' '});
  await call('Input.dispatchKeyEvent',{type:'keyUp',code:'Space',key:' '});
@@ -266,4 +269,4 @@ try{
  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),5);
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.deepEqual(errors,[]);console.log('Browser OK: icon toolbar, L/Z/F/Escape shortcuts, keyboard language menu, expanded layouts, preserved game state, integrated HUD, life entry, CS/EN, offline operation, sound and crushed enemies.');
-}finally{if(instrumentId)await call('Page.removeScriptToEvaluateOnNewDocument',{identifier:instrumentId}).catch(()=>{});await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(()=>{});ws.close()}
+}finally{if(instrumentId)await call('Page.removeScriptToEvaluateOnNewDocument',{identifier:instrumentId}).catch(()=>{});await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(()=>{});if(saved)await evaluate(`localStorage.clear();for(const [key,value]of Object.entries(${saved}))localStorage.setItem(key,value)`).catch(()=>{});ws.close()}

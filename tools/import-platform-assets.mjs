@@ -32,7 +32,7 @@ msx.MUSHROOM=extract(msxImage,16,168,8,8);
 nes.RED_WALL=extract(nesImage,0,41,8,8);nes.BLUE_WALL=extract(nesImage,152,193,8,8);
 nes.RED_BALL=extract(nesImage,80,81);nes.BLUE_BALL=extract(nesImage,96,81);
 nes.CHICKEN_DOWN_1=extract(nesImage,8,49);
-nes.RED_DOWN_1=extract(nesImage,136,157,16,20);
+// Keep the clean derived down pose; this screenshot region contains wall and stone pixels.
 nes.BLUE_RIGHT_1=extract(nesImage,224,97);nes.BLUE_RIGHT_2=nes.BLUE_RIGHT_1;
 nes.BLUE_LEFT_1={...nes.BLUE_RIGHT_1,pixels:nes.BLUE_RIGHT_1.pixels.map((_,i)=>nes.BLUE_RIGHT_1.pixels[Math.floor(i/16)*16+15-i%16])};nes.BLUE_LEFT_2=nes.BLUE_LEFT_1;
 // Only game sprites and tiles are exported, retaining source dimensions.

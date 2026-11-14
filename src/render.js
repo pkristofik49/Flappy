@@ -105,8 +105,6 @@ function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translati
     if(atlas)modernSprite(ctx,atlas,4,x,8,11,16);else if(palette.retro)drawRetro(ctx,palette.retro.CHICKEN_DOWN_1,x,8,12,16);else bitmap(ctx,sprites.front,x,8,2,16,palette.player);
   }
   if(atlas){
-    ctx.fillStyle='#1b2b3b';ctx.beginPath();ctx.roundRect(74,7.5,86,16,.9);ctx.fill();
-    ctx.fillStyle='#79d5e8';ctx.fillRect(75,7.5,84,.35);
     hudText(ctx,sectorLabel,78,8,5.1,'#9fbdcb');hudText(ctx,String(scene).padStart(3,'0'),156,7.8,7.2,palette.text,'right');
   }else{pixelText(ctx,sectorLabel,78,8,palette.text);pixelText(ctx,String(scene).padStart(3,'0'),138,8,palette.text)}
   for(let i=0;i<game.ammo;i++){
@@ -121,11 +119,11 @@ function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translati
   }
 }
 function hudText(ctx,text,x,y,size,color,align='left'){
-  ctx.save();ctx.font=`600 ${size}px Arial, sans-serif`;ctx.textBaseline='top';ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(text,x,y);ctx.restore();
+  ctx.save();ctx.scale(.75,1);ctx.font=`600 ${size}px Arial, sans-serif`;ctx.textBaseline='top';ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(text,x*4/3,y);ctx.restore();
 }
 export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],hud,transition=null,graphics={}){
   const mode=graphics.mode==='modern'&&!graphics.atlas?'color':graphics.mode??'mono';
-  const atlas=mode==='modern'?graphics.atlas:null,palette=palettes[mode]??palettes.mono,scale=atlas?4:1,retro=palette.retro,scaleX=retro?4/3:scale;
+  const atlas=mode==='modern'?graphics.atlas:null,palette=palettes[mode]??palettes.mono,scale=atlas?4:1,retro=palette.retro,scaleX=retro?4/3:atlas?16/3:1;
   if(ctx.canvas.width!==CANVAS_WIDTH*scaleX)ctx.canvas.width=CANVAS_WIDTH*scaleX;
   if(ctx.canvas.height!==CANVAS_HEIGHT*scale)ctx.canvas.height=CANVAS_HEIGHT*scale;
   ctx.save();ctx.scale(scaleX,scale);
@@ -163,7 +161,7 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
   const pose=playerPose(p);
   const position=visual(p),step=position.moving&&!p.crushed?Math.sin(Math.PI*position.progress)*.45:0;
   if((!transition||transition.playerVisible)&&(game.state!=='dead'||graphics.showDeadPlayer!==false)){
-    if(atlas)modernSprite(ctx,atlas,modernPlayerFrame(p),position.x*6,position.y*8+pose.y-step,12,pose.height);
+    if(atlas)modernSprite(ctx,atlas,modernPlayerFrame(p,position.progress),position.x*6,position.y*8+pose.y-step,12,pose.height);
     else if(retro)drawRetro(ctx,retroPlayer(retro,p),p.x*6,p.y*8+pose.y,12,pose.height);
     else bitmap(ctx,pose.data,p.x*6+pose.x,p.y*8+pose.y,pose.width,pose.height,palette.player);
   }

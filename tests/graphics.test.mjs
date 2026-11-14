@@ -12,7 +12,11 @@ test('Modern walking frames preserve all four directions and stop at the idle po
  const poses=[[-1,0,[0,1]],[1,0,[2,3]],[0,1,[4,5]],[0,-1,[6,7]]];
  for(const [dx,dy,expected]of poses){
   assert.equal(modernPlayerFrame({dx,dy,walking:false,walkFrame:3}),expected[0]);
-  assert.deepEqual([0,1,2,3].map(walkFrame=>modernPlayerFrame({dx,dy,walking:true,walkFrame})),[...expected,...expected]);
+  if(dx){
+   const frames=[1,2,3,0].flatMap(walkFrame=>[0,.5].map(progress=>modernPlayerFrame({dx,dy,walking:true,walkFrame},progress)));
+   assert.deepEqual(frames,Array.from({length:8},(_,i)=>(dx<0?16:24)+i));
+   assert.equal(modernPlayerFrame({dx,dy,walking:true,walkFrame:1},1),modernPlayerFrame({dx,dy,walking:true,walkFrame:2},0));
+  }else assert.deepEqual([0,1,2,3].map(walkFrame=>modernPlayerFrame({dx,dy,walking:true,walkFrame})),[...expected,...expected]);
  }
 });
 test('Frogs retain four distinct modern views, including when crushed',()=>{

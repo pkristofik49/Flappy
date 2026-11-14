@@ -47,14 +47,19 @@ předchozí původní obrys cílového kamene se světlou výplní, v barevném 
 `src/graphics.js` ořízne při načtení pouze průhledné okraje buněk pro vykreslení;
 zdrojové PNG nemění. Duch se zrcadlí při pohybu doprava, skoky žáby používají
 její směrové snímky a krátké zvednutí. Mrtvolka používá zploštění příslušného
-spritu. Krtek s růžovým čumákem a hrabavými tlapkami střídá dva kreslené snímky
-pro každý směr; zadní pohled ukazuje záda bez obličeje.
-Moderní režim renderuje plochu v rozlišení 960 × 800 se zachováním stejné
+spritu. Svislá chůze krtka střídá dva kreslené snímky; zadní pohled ukazuje záda bez obličeje.
+Boční chůze používá [modern-mole-walk.png](modern-mole-walk.png), nový průhledný
+atlas vytvořený vestavěným imagegen podle [přesného promptu](modern-mole-walk-prompt.txt).
+Buňky jsou ve čtyřech řádcích po čtyřech: prvních osm je chůze vlevo, dalších osm
+vpravo. Tlapky se střídají v celém osmifázovém cyklu. Společný výřez zachovává
+velikost těla mezi snímky; fáze se mění po 60 ms pouze při pohybu.
+Moderní režim renderuje plochu v rozlišení 1280 × 800 (16:10, stejně jako NES) se zachováním stejné
 herní mřížky a kolizí. Zdivo je kreslené přes Canvas jako červené cihly ve dvou
 řadách na buňku, s půlcihlovým posunem svislých spár a světlou horní hranou.
 Cílové políčko v PC používá stejnou cihlovou kresbu v modré a azurové paletě
 krystalu, včetně tmavých spár a světlých hran.
 Ukazatele používají vyhlazené systémové písmo Arial bez dalších fontových souborů.
+Prostřední okénko SEKTOR má stejné pozadí jako pravé okénko VBG-SOFT.
 `src/motion.js` interpoluje pozice všech pohyblivých objektů; fáze kroků, poskoky
 žab a vznášení duchů se vykreslují na snímcích prohlížeče. Kolizní mřížka zůstává
 stejná. Při smrti se obraz zarovná s místem kolize, při pauze se hodiny animací zastaví.

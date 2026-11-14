@@ -17,7 +17,6 @@
     <header class="masthead">
       <a class="wordmark" href="./" :aria-label="t('brand.home')"><span class="mark">{{ t('brand.mark') }}</span> {{ t('brand.name') }}<span class="edition">{{ t('graphics.' + graphics) }}</span></a>
       <div class="header-actions">
-        <span class="status"><i :class="{offline: !online}"></i>{{ t(online ? 'status.ready' : 'status.offline') }}</span>
         <button v-if="installPrompt" class="text-button" @click="install">{{ t('action.install') }} ↗</button>
         <div class="global-controls">
           <div ref="languagePicker" class="language-picker" @focusout="onPickerBlur">
@@ -41,7 +40,7 @@
       <div class="intro"><div><div class="eyebrow">{{ t('intro.eyebrow') }}</div><h1>{{ t('intro.titleFirst') }}<br>{{ t('intro.titleSecond') }}<span aria-hidden="true">.</span></h1></div><p>{{ t('intro.description') }}</p></div>
       <div class="game-layout">
         <section class="machine" :aria-label="t('game.label')">
-          <div class="machine-top"><span><i></i> {{ t('graphics.' + graphics) }}</span><span>{{ t('game.category') }}</span></div>
+          <button type="button" class="machine-top" :aria-label="t('action.titleScreen')" :title="t('action.titleScreen')" @click="returnTitle"><span><i></i> {{ t('graphics.' + graphics) }}</span><span>{{ t('game.category') }}</span></button>
           <div class="screen-wrap" :class="{ 'show-title': mode === 'ready' }">
             <div class="game-hud sr-only"><span>{{ t('game.scene') }} <b>{{ String(scene).padStart(3, '0') }}</b></span><span class="lives" :aria-label="plural('game.lives', lives)">{{ lives }}</span><span class="mushroom-count">{{ t('game.ammo') }} <b>{{ ammo }}</b></span><span>{{ t('game.time') }} <b>{{ timeText }}</b></span></div>
             <div class="viewport" :style="{ aspectRatio: String(gameAspect) }">
@@ -66,7 +65,14 @@
           <article class="guide"><span class="step">02</span><div><h3>{{ t('guide.stoneTitle') }}</h3><p>{{ t('guide.stoneText') }}</p></div></article>
           <article class="guide"><span class="step">03</span><div><h3>{{ t('guide.enemyTitle') }}</h3><p>{{ t('guide.enemyText') }}</p></div></article>
           <div class="keys"><h3>{{ t('keys.title') }}</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>{{ t('keys.move') }}</span></p><p><kbd class="space">{{ t('key.space') }}</kbd><span>{{ t('keys.fire') }}</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>{{ t('keys.pauseRestart') }}</span></p><p class="global-keys">{{ t('keys.global') }}</p></div>
-          <div class="scene-picker"><label for="scene">{{ t('scene.choose') }}</label><div><select id="scene" v-model.number="selectedScene"><option v-for="n in unlocked" :value="n">{{ t('scene.option', {scene: String(n).padStart(3,'0')}) }}</option></select><button @click="chooseScene" :aria-label="t('scene.open')">↗</button></div><small>{{ t('scene.unlocked', {count: unlocked}) }}</small></div>
+          <div class="scene-picker"><label for="scene">{{ t('scene.choose') }}</label><div><select id="scene" v-model.number="selectedScene"><option v-for="n in accessibleScenes" :key="n" :value="n">{{ t('scene.option', {scene: String(n).padStart(3,'0')}) }}</option></select><button @click="chooseScene" :aria-label="t('scene.open')">↗</button></div><small>{{ t('scene.unlocked', {count: accessibleScenes.length}) }}</small>
+            <form class="password-form" @submit.prevent="openPassword" novalidate>
+              <label for="sector-password">{{ t('password.label') }}</label>
+              <div class="password-controls"><input id="sector-password" v-model="passwordInput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" :spellcheck="false" aria-describedby="password-hint password-feedback" @focus="pauseForPassword" @input="passwordMessage = ''"><button type="submit">{{ t('password.submit') }}</button></div>
+              <small id="password-hint">{{ t('password.hint') }}</small>
+              <p id="password-feedback" class="password-feedback" role="status">{{ passwordMessage ? t(passwordMessage, passwordRange) : '' }}</p>
+            </form>
+          </div>
         </aside>
       </div>
       <p class="notice" aria-live="polite">{{ t(notice || 'notice.default') }}</p>

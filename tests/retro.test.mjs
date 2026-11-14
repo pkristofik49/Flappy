@@ -25,4 +25,5 @@ test('Every platform renders directional player and enemy animation, crushing an
   for(const type of ['frog','ghost'])assert.equal(retroEnemy(set,{type,crushed:true},0).height,8);
   assert.notDeepEqual(set.BALL_CRASH_1.pixels,set.BALL_CRASH_2.pixels);
  }
+ assert.equal(retroSet('nes').RED_DOWN_1.height,16,'The NES down pose excludes wall rows from the screenshot');
 });

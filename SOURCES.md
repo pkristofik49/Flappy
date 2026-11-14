@@ -26,6 +26,8 @@ loga a souřadnic, včetně roku 1984. Některé směrové a krokové fáze MSX/
 které na statických podkladech nejsou, jsou odvozené ze Sharp bitmap příslušnou
 paletou a zrcadlením. Nejde o tvrzení, že všechny animační snímky jsou přesným
 dumpem příslušného vydání. Původní práva zůstávají autorům a držitelům hry.
+Skok žáby NES dolů používá čistou odvozenou směrovou fázi; původní chybný výřez
+z herního snímku obsahoval také kus zdiva a kamene a již se nepoužívá.
 
 Reprodukovatelný import: do adresáře vlož `sharp-Images.js`, `sharp-Intro.js`,
 `sharp-Font.js`, `msx-game.png` a `nes-game.png` z uvedených podkladů a spusť
@@ -42,6 +44,9 @@ Režim **PC** používá samostatné AI generované ilustrace
 v `assets/modern-sprites.png` (vestavěný imagegen). Přesný prompt a pořadí
 snímků jsou v `assets/modern-mole-prompt.txt` a `assets/README.md`. Jde o novou
 grafiku tohoto projektu, která nenahrazuje historická data.
+Osmifázová boční chůze v `assets/modern-mole-walk.png` vznikla stejným vestavěným
+imagegen podle původního moderního krtka. Přesný prompt je uložený v
+`assets/modern-mole-walk-prompt.txt`; PNG je uložené beze změn.
 Režim **PMD-85-3** obarvuje stávající bitmapy paletou zvolenou pro web.
 Barevné varianty PMD jsou doložené na [stránce autora FLAPPY2k](https://www.pmd85.cz/?page_id=965);
 webové obarvení není emulací konkrétního hardwarového barevného režimu.
@@ -118,6 +123,14 @@ vykreslování jsou implementovány pro web, nejde o emulaci původní rutiny PM
 Jediná knihovna aplikace je uživatelem požadované **Vue 3.5.13**, uloženo lokálně
 v `vendor/vue.esm-browser.prod.js`. Licence MIT: `vendor/VUE-LICENSE.txt`.
 Žádné CDN, fontové služby, analytika ani jiné knihovny nejsou použity.
+
+## Hesla sektorů
+
+`assets/sector-passwords.js` obsahuje všech 40 pětiznakových hesel pro sektory
+1–200 z [původního seznamu na PMD85.cz](https://www.pmd85.cz/wp-content/uploads/hesla.txt).
+Každé zpřístupní pět sektorů. Zápis včetně interpunkce je zachovaný;
+reprodukovatelný import: `node tools/import-passwords.mjs cesta/hesla.txt`.
+Ověření probíhá lokálně bez serveru a funguje offline.
 
 ## Zvukové podklady
 
