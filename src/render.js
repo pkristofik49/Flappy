@@ -119,7 +119,7 @@ function drawHud(ctx,game,{scene=1,lives=5,timeText='6:00',sectorLabel=translati
   }
 }
 function hudText(ctx,text,x,y,size,color,align='left'){
-  ctx.save();ctx.scale(.75,1);ctx.font=`600 ${size}px Arial, sans-serif`;ctx.textBaseline='top';ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(text,x*4/3,y);ctx.restore();
+  ctx.save();ctx.scale(.75,1);ctx.font=`600 ${size}px "Courier New", monospace`;ctx.textBaseline='top';ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(text,x*4/3,y);ctx.restore();
 }
 export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],hud,transition=null,graphics={}){
   const mode=graphics.mode==='modern'&&!graphics.atlas?'color':graphics.mode??'mono';
@@ -155,7 +155,7 @@ export function render(ctx,game,sleepMarker=translations.cs['game.sleepMarker'],
       modernSprite(ctx,atlas,modernEnemyFrame(e),position.x*6,position.y*8+(e.crushed?4:-hop+hover),12,e.crushed?4:16,{flip:e.type!=='frog'&&e.dx>0,opacity:e.sleep ? .5 : 1});
     }else if(retro){const frame=retroEnemy(retro,e,game.ticks);ctx.save();ctx.globalAlpha=e.sleep ? .5 : 1;drawRetro(ctx,frame,e.x*6,e.y*8+(e.crushed?0:16-frame.height));ctx.restore()}
     else bitmap(ctx,pose.data,e.x*6+pose.x,e.y*8+pose.y,pose.width,pose.height,e.sleep?palette.sleep:palette[e.type],pose.flip);
-    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font=atlas?'600 5px Arial, sans-serif':'6px monospace';ctx.fillText(sleepMarker,position.x*6+10,position.y*8+1)}
+    if(e.sleep){ctx.fillStyle='#b4c49e';ctx.font=atlas?'600 5px "Courier New", monospace':'6px monospace';ctx.fillText(sleepMarker,position.x*6+10,position.y*8+1)}
   }
   const p=game.player;
   const pose=playerPose(p);

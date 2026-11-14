@@ -65,10 +65,10 @@ export function pcTitle(atlas,title,subtitle,version){
  const canvas=document.createElement('canvas');canvas.width=1280;canvas.height=800;const ctx=canvas.getContext('2d');
  const gradient=ctx.createLinearGradient(0,0,0,800);gradient.addColorStop(0,'#213b59');gradient.addColorStop(1,'#101924');ctx.fillStyle=gradient;ctx.fillRect(0,0,1280,800);
  ctx.fillStyle='#131f2d';for(let y=0;y<800;y+=32)for(let x=-(y%64?24:0);x<1280;x+=48){ctx.fillRect(x+2,y+2,44,28)}
- ctx.textAlign='center';ctx.font='900 136px Arial, sans-serif';ctx.fillStyle='#081322';ctx.fillText(title,644,192);ctx.fillStyle='#f2df9d';ctx.fillText(title,640,184);
- ctx.font='600 28px Arial, sans-serif';ctx.fillStyle='#9fbccf';ctx.fillText(subtitle,640,240);
+ ctx.textAlign='center';ctx.font='900 136px "Courier New", monospace';ctx.fillStyle='#081322';ctx.fillText(title,644,192);ctx.fillStyle='#f2df9d';ctx.fillText(title,640,184);
+ ctx.font='600 28px "Courier New", monospace';ctx.fillStyle='#9fbccf';ctx.fillText(subtitle,640,240);
  modernSprite(ctx,atlas,2,330,320,300,300);modernSprite(ctx,atlas,13,760,400,210,200);
  ctx.fillStyle='#155ca7';ctx.fillRect(755,600,220,20);ctx.fillStyle='#72e1ff';ctx.fillRect(755,600,220,4);
- ctx.fillStyle='#9bbdba';ctx.font='600 22px Arial, sans-serif';ctx.fillText(version,640,724);
+ ctx.fillStyle='#9bbdba';ctx.font='600 22px "Courier New", monospace';ctx.fillText(version,640,724);
  return {src:canvas.toDataURL(),width:1280,height:800};
 }

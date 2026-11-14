@@ -58,7 +58,7 @@ herní mřížky a kolizí. Zdivo je kreslené přes Canvas jako červené cihly
 řadách na buňku, s půlcihlovým posunem svislých spár a světlou horní hranou.
 Cílové políčko v PC používá stejnou cihlovou kresbu v modré a azurové paletě
 krystalu, včetně tmavých spár a světlých hran.
-Ukazatele používají vyhlazené systémové písmo Arial bez dalších fontových souborů.
+Ukazatele používají vyhlazené systémové písmo Courier New bez dalších fontových souborů.
 Prostřední okénko SEKTOR má stejné pozadí jako pravé okénko VBG-SOFT.
 `src/motion.js` interpoluje pozice všech pohyblivých objektů; fáze kroků, poskoky
 žab a vznášení duchů se vykreslují na snímcích prohlížeče. Kolizní mřížka zůstává
