@@ -62,12 +62,12 @@ export class Game {
       const touchingSide=dx>0?p.x+p.w===rock.x:p.x===rock.x+rock.w;
       if(!dx||p.y!==rock.y||!touchingSide||rock.falling)return false;
       const dest={...rock,x:rock.x+dx};
-      if(this.blocked(dest,rock)){
+      // Side pressure against a creature breaks the ordinary stone, not the enemy.
+      if(this.blocked(dest,rock)||this.enemies.some(e=>intersects(dest,e))){
         if(!rock.egg)this.breakRock(rock);
         return false;
       }
       rock.x+=dx;this.event='push';
-      this.enemies=this.enemies.filter(e=>!intersects(e,rock));
     }
     p.x=target.x;p.y=target.y;
     if(!rock)this.event='step';
@@ -77,7 +77,8 @@ export class Game {
     this.checkEnemies();this.checkGoal();return true;
   }
   fire(){if(this.state!=='playing'||!this.ammo)return false;this.ammo--;const p=this.player;this.shots.push({x:p.x+(p.dx>0?2:p.dx<0?-1:0),y:p.y+(p.dy>0?2:p.dy<0?-1:0),w:1,h:1,dx:p.dx,dy:p.dy,life:40});this.event='fire';return true}
-  checkEnemies(){if(this.enemies.some(e=>!e.sleep&&intersects(e,this.player)))this.die('death.enemy')}
+  // PMD mushrooms freeze enemies; sleeping creatures remain lethal on contact.
+  checkEnemies(){if(this.enemies.some(e=>intersects(e,this.player)))this.die('death.enemy')}
   checkGoal(){if(this.state==='playing'&&this.goal&&this.rocks.some(r=>r.egg&&r.x===this.goal.x&&(r.y+r.h===this.goal.y||intersects(r,this.goal)))){this.state='won';this.event='win'}}
   tick(){
     if(this.state==='entering'){this.advanceEntry();return}

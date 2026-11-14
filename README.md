@@ -30,7 +30,9 @@ ani service worker.
 - Dostaň modrý krystal na cílovou podložku. V režimu PMD 85-1 ho poznáš podle
   světlé výplně. Krystal i obyčejné kameny padají,
   běžné kameny lze rozbít tlakem proti překážce ze strany nebo shora. Padající předměty drtí obludy
-  i hráče. Houba nepřítele dočasně uspí.
+  i hráče. Houba nepřítele dočasně uspí, ale i spící žába nebo duch zabíjí při dotyku,
+  stejně jako v původní PMD verzi. Ze strany nepřítele kamenem nezabiješ: obyčejný
+  kámen se proti němu rozpadne a modrý krystal se zastaví. Zabíjí pouze pád shora.
 - Rozbitý obyčejný kámen se krátce rozsype. Režimy PMD používají dva původní
   snímky, PC plynule padající úlomky. Efekt trvá přibližně 0,72 sekundy herního
   času, při pauze stojí a neblokuje pohyb ani neubližuje postavám.

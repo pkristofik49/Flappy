@@ -131,8 +131,9 @@ test('Both walking into an enemy and an enemy walking into Flappy leave a flatte
  }
 });
 test('A falling stone or egg leaves a flattened enemy, waits, then continues falling',()=>{
- for(const rockType of [2,3])for(const enemyType of [4,5]){
+ for(const rockType of [2,3])for(const enemyType of [4,5])for(const sleep of [0,60]){
   const g=new Game({walls:[],objects:[{type:rockType,x:5,y:1},{type:enemyType,x:5,y:3}]});
+  g.enemies[0].sleep=sleep;
   const rock=g.rocks[0];g.tick();
   assert.equal(g.enemies.length,0);assert.equal(g.corpses.length,1);
   const corpse=g.corpses[0];
@@ -172,6 +173,45 @@ test('Egg resting above the goal completes the scene',()=>{
 });
 test('A mushroom is collected once and a shot stuns an enemy',()=>{
  const g=new Game(level([{type:1,x:3,y:1},{type:5,x:5,y:1}]));g.move(1,0);assert.equal(g.ammo,1);g.move(-1,0);g.move(1,0);assert.equal(g.ammo,1);g.fire();for(let i=0;i<3;i++)g.tick();assert.equal(g.ammo,0);assert.ok(g.enemies[0].sleep>0);assert.equal(g.state,'playing');
+});
+
+test('Awake and sleeping PMD enemies kill on contact from all four directions',()=>{
+ for(const type of [4,5])for(const sleep of [0,60])for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){
+  const g=new Game({walls:[],objects:[{type,x:10,y:10}]});
+  g.enemies[0].sleep=sleep;Object.assign(g.player,{x:10-dx*2,y:10-dy*2});
+  g.move(dx,dy);
+  assert.equal(g.state,'dead');assert.equal(g.reason,'death.enemy');assert.equal(g.enemies.length,1);
+ }
+});
+
+test('A mushroom freezes an enemy until its sleep expires without making it passable',()=>{
+ for(const type of [4,5]){
+  const g=new Game({walls:[],objects:[{type,x:10,y:10}]});
+  const enemy=g.enemies[0];enemy.sleep=5;enemy.dx=1;g.player.x=30;g.random=()=>1;
+  for(let tick=1;tick<=5;tick++){g.tick();assert.equal(enemy.sleep,5-tick);assert.equal(enemy.x,10);assert.equal(enemy.y,10)}
+  for(let tick=0;tick<5;tick++)g.tick();assert.equal(enemy.x,11);
+ }
+});
+
+test('Side pressure breaks an ordinary stone against an enemy and never deletes the enemy',()=>{
+ for(const type of [4,5])for(const sleep of [0,60])for(const dx of [-1,1]){
+  const g=new Game({walls:[],objects:[{type:3,x:10,y:10},{type,x:10+dx*2,y:10}]});
+  const enemy=g.enemies[0];enemy.sleep=sleep;Object.assign(g.player,{x:10-dx*2,y:10});
+  assert.equal(g.move(dx,0),false);assert.equal(g.rocks.length,0);assert.equal(g.enemies[0],enemy);
+  assert.equal(enemy.x,10+dx*2);assert.equal(enemy.sleep,sleep);assert.equal(g.corpses.length,0);
+  assert.equal(g.debris.length,1);assert.equal(g.event,'break');assert.equal(g.state,'playing');
+  assert.equal(g.player.x,10-dx*2);
+ }
+});
+
+test('A crystal is blocked by both awake and sleeping enemies without breaking or killing',()=>{
+ for(const type of [4,5])for(const sleep of [0,60])for(const dx of [-1,1]){
+  const g=new Game({walls:[],objects:[{type:2,x:10,y:10},{type,x:10+dx*2,y:10}]});
+  g.enemies[0].sleep=sleep;Object.assign(g.player,{x:10-dx*2,y:10});
+  assert.equal(g.move(dx,0),false);assert.equal(g.rocks.length,1);assert.equal(g.rocks[0].x,10);
+  assert.equal(g.enemies.length,1);assert.equal(g.corpses.length,0);assert.equal(g.debris.length,0);
+  assert.equal(g.player.x,10-dx*2);assert.equal(g.state,'playing');
+ }
 });
 test('All scenes remain inside the board during simulation',()=>{
  for(const l of levels){const g=new Game(l);for(let i=0;i<100&&g.state==='playing';i++)g.tick();for(const r of g.rocks)assert.ok(r.x>=0&&r.x+2<=40&&r.y>=0&&r.y+2<=22)}

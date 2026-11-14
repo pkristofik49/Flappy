@@ -73,6 +73,15 @@ tento projekt nedává původním herním datům novou licenci.
 
 Herní mechanismy jsou nově implementovány: nejde o emulaci instrukcí PMD 85.
 Rychlost, AI nepřátel, střelba a okrajové kolize se mohou od originálu lišit.
+Kolize se spícími nepřáteli a boční tlak kamenem byly ověřeny přímo v původním
+vydání `*FLAPPY*` z roku 1987 z [archivu VBG Software](https://pmd85.borik.net/?action=download&did=8).
+`tools/check-original-collisions.mjs cesta/games-vbg.ptp` izolovaně vykoná
+32 scénářů původních kolizních větví procesoru 8080. Nepřebírá je do aplikace.
+Původní směrové větve na adresách `1726`, `1820`, `18B4`, `1940` při kontaktu
+s žábou nebo duchem, včetně spících bitmap, volají smrt přes `1BB1` → `0A02`.
+Spánek zastaví pohyb, ale neodstraní smrtící kolizi. Boční tlak rozbije obyčejný
+kámen přes `1775`; krystal i nepřítel zůstanou. Nepřítele zničí až pád shora.
+Tato pravidla platí společně ve všech grafických režimech naší adaptace PMD.
 Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mřížce.
 Cílový předmět je modrý kámen / krystal. Původně importované bitmapy cílového
 a obyčejného kamene jsou stejné; oba PMD režimy zachovávají původní obrys
