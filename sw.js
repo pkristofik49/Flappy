@@ -6,7 +6,7 @@ const FILES = ['./', './index.html', './style.css', './version.js', './manifest.
   './src/app.js', './src/engine.js', './src/render.js', './src/graphics.js', './src/motion.js', './src/transition.js', './src/pixel-font.js', './src/audio.js', './src/i18n.js', './src/translations.js', './assets/game-data.js', './assets/title-screen.png', './assets/modern-sprites.png', './assets/modern-crystal.png',
   './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png',
   './src/retro.js', './assets/retro-data.js', './assets/title-sharp.png', './assets/title-msx.png', './assets/title-nes.png', './assets/title-pmd85-3.gif', './assets/modern-mole-walk.png',
-  './src/passwords.js', './assets/sector-passwords.js',
+  './src/passwords.js', './assets/sector-passwords.js', './src/enemy-ai.js', './assets/pmd-ai-probes.js',
   './vendor/vue.esm-browser.prod.js'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)));

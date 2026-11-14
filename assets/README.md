@@ -66,6 +66,11 @@ stejná. Při smrti se obraz zarovná s místem kolize, při pauze se hodiny ani
 
 ## PMD 85-1 a PMD-85-3
 
+`pmd-ai-probes.js` uchovává původní bitmapové bajty PMD vydání 1987, které
+rozhodovací rutiny nepřátel používají jako kolizní značky. Nevykreslují se;
+jejich použití udržuje stejné rozhodování ve všech grafických režimech.
+Podrobnosti, import a porovnání s původním kódem jsou v [SOURCES.md](../SOURCES.md).
+
 V PMD 85-1 mají zdi i rozbitné kameny tmavší odstín `#aab2a2`, stejný jako
 nápis VBG-SOFT. Cílový kámen zůstává světlý pro snadné rozlišení.
 

@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {levels,sprites} from '../assets/game-data.js';
 const root=new URL('../',import.meta.url);
+for(const file of ['src/enemy-ai.js','assets/pmd-ai-probes.js'])execFileSync(process.execPath,['--check',new URL(file,root).pathname.replace(/^\/([A-Za-z]:)/,'$1')]);
 const version=fs.readFileSync(new URL('VERSION',root),'utf8').trim();
 assert.match(version,/^\d+\.\d{3}$/);
 const context={};vm.runInNewContext(fs.readFileSync(new URL('version.js',root),'utf8'),context);assert.equal(context.FLAPPY_VERSION,version);

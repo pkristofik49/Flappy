@@ -126,7 +126,7 @@ test('Both walking into an enemy and an enemy walking into Flappy leave a flatte
  for(const type of [4,5]){
   const g=new Game(level([{type,x:3,y:1}]));g.move(1,0);
   assert.equal(g.state,'dead');assert.equal(g.reason,'death.enemy');assert.equal(g.player.crushed,true);assert.equal(g.player.walking,false);
-  const h=new Game(level([{type,x:3,y:1}]));h.enemies[0].dx=-1;h.ticks=4;h.random=()=>1;h.tick();
+  const h=new Game(level([{type,x:3,y:1}]));Object.assign(h.enemies[0],{dx:-1,dy:0,pathSteps:1});h.ticks=4;h.random=()=>1;h.tick();
   assert.equal(h.state,'dead');assert.equal(h.player.crushed,true);
  }
 });
@@ -187,7 +187,7 @@ test('Awake and sleeping PMD enemies kill on contact from all four directions',(
 test('A mushroom freezes an enemy until its sleep expires without making it passable',()=>{
  for(const type of [4,5]){
   const g=new Game({walls:[],objects:[{type,x:10,y:10}]});
-  const enemy=g.enemies[0];enemy.sleep=5;enemy.dx=1;g.player.x=30;g.random=()=>1;
+  const enemy=g.enemies[0];enemy.sleep=5;enemy.dx=1;enemy.dy=0;enemy.pathSteps=2;g.player.x=30;g.random=()=>0;
   for(let tick=1;tick<=5;tick++){g.tick();assert.equal(enemy.sleep,5-tick);assert.equal(enemy.x,10);assert.equal(enemy.y,10)}
   for(let tick=0;tick<5;tick++)g.tick();assert.equal(enemy.x,11);
  }

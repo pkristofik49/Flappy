@@ -96,16 +96,16 @@ test('Frogs have distinct original idle and hopping graphics in all four directi
 test('Frog hopping starts only on a successful move and stops when a wall blocks it',()=>{
  const game=new Game({walls:[[13,10]],objects:[{type:4,x:10,y:10}]});
  game.random=()=>1;
- const frog=game.enemies[0];
+ const frog=game.enemies[0];frog.dx=1;frog.dy=0;frog.pathSteps=3;
  for(let i=0;i<5;i++)game.tick();
  assert.equal(frog.x,11);
  assert.equal(frog.stepTick,5);
  assert.equal(enemySprite(frog,game.ticks).data.length,48);
  for(let i=0;i<5;i++)game.tick();
  assert.equal(frog.x,11);
- assert.equal(frog.dx,-1);
+ assert.equal(frog.dx,0);assert.equal(frog.dy,1);
  assert.equal(frog.stepTick,undefined);
- assert.deepEqual(enemySprite(frog,game.ticks).data,sprites.frogLeft);
+ assert.deepEqual(enemySprite(frog,game.ticks).data,sprites.frog);
 });
 
 test('The ghost keeps facing left natively and mirrors only when moving right',()=>{

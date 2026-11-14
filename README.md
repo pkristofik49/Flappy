@@ -60,6 +60,28 @@ ani service worker.
   se odkryje další sektor. Přechod i nástup jsou automatické; životy se zachovají.
   Pauza zastaví i tento přechod. Po sektoru 200 se zobrazí závěrečné vítězství.
 
+## Pohyb nepřátel
+
+Rozhodování nepřátel vychází z původního PMD vydání z roku 1987, společně pro
+všechny grafické režimy. Duch prohledává deset buněk vlevo a vpravo ve své řadě;
+cihlová zeď hledání zastaví. Bez nalezeného hráče volí směr podle náhodného bitu.
+Žába vybírá osu podle náhody a směr podle polohy hráče, používá původní čítač
+trasy a větve pro zablokování a změnu osy. Nepřátelé se zpracovávají ve stejném
+pořadí jako na PMD: nejdříve duchové, potom žáby, odshora zleva.
+
+Rychlost zůstává webová: jedna příležitost k pohybu každých pět kroků simulace,
+tedy 600 ms. Plynulé PC animace, délka spánku a pauza mají dosavadní časování.
+Generátor náhodných čísel zůstává deterministický generátor webové hry; nečte
+paměť skutečného PMD. Shoda rozhodování při stejných náhodných bajtech je
+kontrolována proti původním instrukcím, nikoli podle vizuálního odhadu.
+
+```sh
+node tools/check-original-enemies.mjs cesta/games-vbg.ptp
+```
+
+Kontrola porovná 12 000 situací včetně směrů, čítačů a počtu náhodných voleb.
+Z původního kódu je také uloženo 256 očekávaných výsledků pro běžné testy a CI.
+
 ## PWA a offline
 
 Po prvním úspěšném načtení přes HTTPS / localhost service worker uloží celou

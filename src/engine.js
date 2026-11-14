@@ -1,3 +1,4 @@
+import {decideEnemy,enemyField} from './enemy-ai.js';
 export const WIDTH = 40, HEIGHT = 22;
 export const CRUSH_TICKS = 5; // 600 ms of game time; paused together with the scene.
 export const ENTRY_TICKS = 8;
@@ -5,7 +6,7 @@ export const BREAK_TICKS = 6;
 const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export class Game {
   constructor(level,{seed=12345,entering=false}={}) {
-    this.walls=new Set();this.rocks=[];this.enemies=[];this.corpses=[];this.mushrooms=[];this.shots=[];this.debris=[];
+    this.walls=new Set();this.rocks=[];this.enemies=[];this.corpses=[];this.mushrooms=[];this.shots=[];this.debris=[];this.enemyAI={turn:0x0e};
     this.player={x:1,y:1,w:2,h:2,dx:1,dy:0,walking:false,walkFrame:0,walkTick:0};this.goal=null;this.ammo=0;this.state='playing';this.ticks=0;this.seed=seed;this.reason='';
     for(let x=0;x<WIDTH;x++){this.walls.add(`${x},0`);this.walls.add(`${x},${HEIGHT-1}`)}
     for(let y=0;y<HEIGHT;y++){this.walls.add(`0,${y}`);this.walls.add(`${WIDTH-1},${y}`)}
@@ -13,7 +14,7 @@ export class Game {
     for(const o of level.objects){const a={x:o.x,y:o.y,w:2,h:2};
       if(o.type===2||o.type===3)this.rocks.push({...a,egg:o.type===2,falling:false});
       if(o.type===1)this.mushrooms.push({...a,w:1,h:1});
-      if(o.type===4||o.type===5)this.enemies.push({...a,type:o.type===4?'frog':'ghost',dx:1,dy:0,sleep:0});
+      if(o.type===4||o.type===5)this.enemies.push({...a,type:o.type===4?'frog':'ghost',dx:o.type===4?0:-1,dy:o.type===4?1:0,sleep:0,pathSteps:0});
       if(o.type===6)this.goal={...a,h:1};
     }
     this.entry=null;
@@ -116,16 +117,18 @@ export class Game {
       if(this.blocked(shot))shot.life=0;
     }
     this.shots=this.shots.filter(s=>s.life>0);
-    for(const e of this.enemies){
+    // Native drivers scan ghosts first, then frogs, from top left to bottom right.
+    for(const e of [...this.enemies].sort((a,b)=>(a.type==='frog')-(b.type==='frog')||a.y-b.y||a.x-b.x)){
       if(e.sleep){e.sleep--;continue}
       if(this.ticks%5)continue;
-      let dx=e.dx,dy=e.dy;
-      if(e.type==='ghost'){
-        dy=0;if(Math.abs(e.x-this.player.x)<10)dx=Math.sign(this.player.x-e.x)||dx;
-        else if(this.random()<.25)dx=-dx;
-      }else if(this.random()<.4){const dirs=[[0,1],[0,-1],[1,0],[-1,0]];[dx,dy]=dirs[Math.floor(this.random()*4)]}
+      const decision=decideEnemy(e,this.player,enemyField(this,e),()=>Math.min(255,Math.floor(this.random()*256)),this.enemyAI);
+      if(decision.kill){this.die('death.enemy');return}
+      if(decision.sleepAt){const {dx,dy}=decision.sleepAt;this.mushrooms=this.mushrooms.filter(m=>m.x!==e.x+dx||m.y!==e.y+dy);e.sleep=60;e.stepTick=undefined;this.event='sleep';continue}
+      const {dx,dy,face}=decision;
+      if(face){[e.dx,e.dy]=face==='left'?[-1,0]:face==='right'?[1,0]:face==='up'?[0,-1]:[0,1]}
+      if(!dx&&!dy){e.stepTick=undefined;continue}
       const dest={...e,x:e.x+dx,y:e.y+dy};
-      if(!this.blocked(dest)&&!this.enemies.some(other=>other!==e&&intersects(dest,other))){e.x=dest.x;e.y=dest.y;e.dx=dx;e.dy=dy;e.stepTick=this.ticks}else{e.dx=-dx;e.dy=-dy;e.stepTick=undefined}
+      if(!this.blocked(dest)&&!this.enemies.some(other=>other!==e&&intersects(dest,other))){e.x=dest.x;e.y=dest.y;e.stepTick=this.ticks}else e.stepTick=undefined;
     }
     this.checkEnemies();this.checkGoal();
   }

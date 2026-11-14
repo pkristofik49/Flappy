@@ -72,7 +72,7 @@ emulátor ani cizí herní engine. Práva k původnímu dílu zůstávají jeho 
 tento projekt nedává původním herním datům novou licenci.
 
 Herní mechanismy jsou nově implementovány: nejde o emulaci instrukcí PMD 85.
-Rychlost, AI nepřátel, střelba a okrajové kolize se mohou od originálu lišit.
+Rychlost, střelba a okrajové kolize se mohou od originálu lišit.
 Kolize se spícími nepřáteli a boční tlak kamenem byly ověřeny přímo v původním
 vydání `*FLAPPY*` z roku 1987 z [archivu VBG Software](https://pmd85.borik.net/?action=download&did=8).
 `tools/check-original-collisions.mjs cesta/games-vbg.ptp` izolovaně vykoná
@@ -82,6 +82,27 @@ s žábou nebo duchem, včetně spících bitmap, volají smrt přes `1BB1` → 
 Spánek zastaví pohyb, ale neodstraní smrtící kolizi. Boční tlak rozbije obyčejný
 kámen přes `1775`; krystal i nepřítel zůstanou. Nepřítele zničí až pád shora.
 Tato pravidla platí společně ve všech grafických režimech naší adaptace PMD.
+
+Rozhodovací větve nepřátel z tohoto původního PMD vydání jsou ručně přeložené
+v `src/enemy-ai.js`: duch `0D17–0EDE`, žába `11C5–15C3`. Zůstaly zachované
+bitové volby, pořadí sondování, čítač trasy, sdílený příznak změny osy i
+asymetrie některých větví při nárazu. Metadata bitmap potřebná pro původní
+kolizní sondy jsou v `assets/pmd-ai-probes.js`; nejde o grafiku vybraného skinu.
+Import dat: `node tools/import-pmd-ai.mjs cesta/games-vbg.ptp`.
+Původní pořadí obsluhy je duchové a potom žáby, v každé skupině shora zleva.
+
+`tools/check-original-enemies.mjs cesta/games-vbg.ptp` vykoná rozhodovací části
+originálního strojového kódu v testovacím 8080 runneru a porovná 12 000 situací
+s přeloženou logikou. Porovnává směr a uskutečnění pohybu, čekání, smrtící kontakt,
+uspání, oba čítače a spotřebu náhodných bajtů. Referenční renderer se neprovádí;
+zachytí se okamžik před vykreslením rozhodnutého pohybu. Přepínač
+`--write-fixtures` obnoví 256 očekávaných výsledků v `tests/fixtures/` pro CI.
+Runner ani původní spustitelný program nejsou součástí publikované hry.
+Adaptace ponechává dosavadní mřížku fyziky a podle zadání i interval 600 ms,
+délku spánku a zobrazovací animace. Vstupní náhodné bajty dodává stávající
+generátor webové hry, nikoli obsah RAM originálu; konkrétní sled tras proto
+není slibovanou reprodukcí stejného průchodu na historickém počítači.
+
 Zdivo, houby a cílová podložka jsou vykresleny znovu ve stejné pixelové mřížce.
 Cílový předmět je modrý kámen / krystal. Původně importované bitmapy cílového
 a obyčejného kamene jsou stejné; oba PMD režimy zachovávají původní obrys
