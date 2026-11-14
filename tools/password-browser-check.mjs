@@ -16,7 +16,7 @@ async function password(code){
  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});
  await until(`document.querySelector('#password-feedback').textContent.length>0`);
 }
-const options=()=>evaluate(`Array.from(document.querySelector('#scene').options,o=>Number(o.value))`);
+async function options(){await evaluate(`document.querySelector('.sector-toggle').click()`);await until(`document.querySelectorAll('[data-sector]').length===200`);const sectors=await evaluate(`Array.from(document.querySelectorAll('[data-sector]:not(:disabled)'),b=>Number(b.dataset.sector))`);await evaluate(`document.querySelector('.sector-close').click()`);await until(`!document.querySelector('.sector-overlay')`);return sectors}
 try{
  await call('Runtime.enable');await call('Page.enable');await call('Network.enable');await call('Network.setBypassServiceWorker',{bypass:false});
  const url=process.argv[2]||'http://127.0.0.1:4173/Flappy/';
@@ -30,7 +30,7 @@ try{
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.intro>p')).fontFamily`),await evaluate(`getComputedStyle(document.querySelector('.about p')).fontFamily`));
  await password('xxxxx');assert.match(await evaluate(`document.querySelector('#password-feedback').textContent`),/není platné/);assert.deepEqual(await options(),[1]);
  await password(':beda');await until(`document.querySelector('canvas').dataset.state==='playing'`);
- assert.deepEqual(await options(),[1,36,37,38,39,40]);assert.equal(await evaluate(`document.querySelector('#scene').value`),'36');
+ assert.deepEqual(await options(),[1,36,37,38,39,40]);assert.equal(await evaluate(`document.querySelector('.game-hud span:first-child b').textContent`),'036');
  assert.match(await evaluate(`document.querySelector('#password-feedback').textContent`),/036–040/);
  await evaluate(`document.querySelector('#sector-password').focus()`);await until(`document.querySelector('canvas').dataset.state==='paused'`);
  const frozen=await evaluate(`document.querySelector('canvas').toDataURL()`);await delay(220);assert.equal(await evaluate(`document.querySelector('canvas').toDataURL()`),frozen,'Password input pauses the room');
@@ -43,17 +43,17 @@ try{
  assert.deepEqual(await options(),[1,36,37,38,39,40,131,132,133,134,135]);
  await evaluate(`navigator.serviceWorker.ready`);await until(`!!navigator.serviceWorker.controller`);
  await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await call('Page.reload');await delay(150);
- await until(`document.querySelector('canvas')?.dataset.state==='ready' && document.querySelector('#scene')?.value==='131'`);
+ await until(`document.querySelector('canvas')?.dataset.state==='ready' && document.querySelector('.game-hud span:first-child b')?.textContent==='131'`);
  assert.deepEqual(await options(),[1,36,37,38,39,40,131,132,133,134,135]);
  await password('ypalf');await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.deepEqual(await options(),[1,36,37,38,39,40,131,132,133,134,135,196,197,198,199,200]);
- assert.equal(await evaluate(`document.querySelector('#scene').value`),'196');
- await evaluate(`document.querySelector('#scene').value='198';document.querySelector('#scene').dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.scene-picker>div button').click()`);
+ assert.equal(await evaluate(`document.querySelector('.game-hud span:first-child b').textContent`),'196');
+ await evaluate(`document.querySelector('.sector-toggle').click()`);await until(`!!document.querySelector('[data-sector="198"]')`);await evaluate(`document.querySelector('[data-sector="198"]').click()`);
  await until(`document.querySelector('canvas').dataset.state==='playing' && document.querySelector('.game-hud span:first-child b').textContent==='198'`);
  assert.equal(await evaluate(`JSON.parse(localStorage.getItem('flappy-pmd85-progress-v1')).scene`),198);
  await call('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true});await call('Emulation.setTouchEmulationEnabled',{enabled:true});
  assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true);
- const clip=await evaluate(`(()=>{const r=document.querySelector('.scene-picker').getBoundingClientRect();return{x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,scale:1}})()`);
+ const clip=await evaluate(`(()=>{const r=document.querySelector('.password-panel').getBoundingClientRect();return{x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,scale:1}})()`);
  const shot=await call('Page.captureScreenshot',{format:'png',clip,captureBeyondViewport:true});fs.mkdirSync('test-results',{recursive:true});fs.writeFileSync('test-results/password-mobile.png',Buffer.from(shot.data,'base64'));
  assert.deepEqual(errors,[]);console.log('Passwords browser OK: exact five-sector groups, case and punctuation, invalid codes, keyboard input, paused room, CS/EN messages, persistence, offline access and mobile layout.');
 }finally{

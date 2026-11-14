@@ -71,11 +71,11 @@ try{
  await call('Input.dispatchKeyEvent',{type:'keyDown',code:'KeyP',key:'p'});await until(`document.querySelector('.overlay h2')?.textContent==='PAUZA'`);
  await screenshot('playing-paused.png');
  await evaluate(`document.querySelector('.primary').click()`);await until(`!document.querySelector('.overlay')`);
- await evaluate(`document.querySelectorAll('.machine-controls button')[1].click()`);await until(`document.querySelector('.game-hud span:last-child b').textContent==='6:00'`);
+ await evaluate(`document.querySelector('.restart-button').click()`);await until(`document.querySelector('.game-hud span:last-child b').textContent==='6:00'`);
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await call('Emulation.setTouchEmulationEnabled',{enabled:true});
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.touch-controls')).display`),'flex');
  assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true);
- await evaluate(`document.querySelector('.machine-controls button').click()`);await screenshot('mobile.png');
+ await evaluate(`document.querySelector('.pause-button').click()`);await screenshot('mobile.png');
  await call('Page.reload');
  await until(titleReady);
  await screenshot('mobile-title.png');
@@ -93,7 +93,7 @@ try{
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.equal(await evaluate(`document.querySelector('.mushroom-count b').textContent`),'0');
  assert.equal(await evaluate(`document.querySelector('.screen-bottom')`),null);
- assert.equal(await evaluate(`document.querySelector('#scene option').textContent`),'Sektor 001');
+ assert.equal(await evaluate(`document.querySelector('.sector-toggle').textContent`),'Sektor');
  assert.equal(await evaluate(`document.querySelector('.notice').textContent.includes('Nejdřív')`),false,'Starting with space must not also fire');
  assert.equal(await evaluate(`navigator.onLine`),false);
  const cacheNames=await evaluate(`caches.keys()`);assert.ok(cacheNames.some(n=>n.startsWith('flappy-pmd85-')));
@@ -198,11 +198,11 @@ try{
  assert.equal(crushSequence.corpseVisible,true);assert.equal(crushSequence.continued,true);
  fs.writeFileSync('test-results/crush-sequence.png',Buffer.from(crushSequence.image.split(',')[1],'base64'));
  // Exercise the real life-loss flow without a test-only application API.
- await evaluate(`document.querySelectorAll('.machine-controls button')[1].click()`);
+ await evaluate(`document.querySelector('.restart-button').click()`);
  await until(`document.querySelector('canvas').dataset.state==='entering'`);
  assert.equal(await evaluate(`document.querySelector('canvas').height`),200);
  assert.equal(await evaluate(`document.querySelector('.game-hud').getBoundingClientRect().width<=1`),true,'The DOM status summary must not duplicate the canvas header');
- await evaluate(`document.querySelector('.machine-controls button').click()`);
+ await evaluate(`document.querySelector('.pause-button').click()`);
  await until(`document.querySelector('canvas').dataset.state==='paused'`);
  const pausedEntry=await evaluate(`document.querySelector('canvas').toDataURL()`);
  await delay(300);
@@ -246,7 +246,7 @@ try{
  await press('KeyF','f');await until(`!document.querySelector('.application').classList.contains('expanded-mode')`);
  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
  await call('Emulation.setTouchEmulationEnabled',{enabled:false});
- await evaluate(`document.querySelectorAll('.machine-controls button')[1].click()`);
+ await evaluate(`document.querySelector('.restart-button').click()`);
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
  // The final life must end the game instead of starting another entry.
  for(let remaining=previousLives-1;remaining>0;remaining--){

@@ -26,6 +26,13 @@ ani service worker.
 - Kliknutí na záhlaví herního okna vrátí úvodní obrazovku. Vybraný sektor a odemčený postup zůstanou uložené.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
+- Tlačítko **Sektor** vedle pauzy otevře nad herní plochou matici 20 × 10 se
+  všemi 200 sektory. Dostupné sektory jsou zvýrazněné; kliknutí nebo klepnutí
+  zahájí vybranou místnost. Aktuální sektor má světlý rámeček, zamčené nelze
+  zvolit. Šipky vybírají dostupné sektory, Home/End první/poslední, Enter potvrzuje.
+  Escape nebo křížek výběr zavře. Rozehraná hra včetně nástupu a přechodu během
+  výběru stojí; zavření zachová předchozí stav pauzy. Na mobilu lze matici
+  posouvat uvnitř herního okna. Výběr funguje také ve zvětšeném a offline režimu.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
 - Dostaň modrý krystal na cílovou podložku. V režimu PMD 85-1 ho poznáš podle
   světlé výplně. Krystal i obyčejné kameny padají,
@@ -40,7 +47,7 @@ ani service worker.
   0,6 sekundy herního času a po zmizení těla pokračuje v pádu; pauza časování zastaví.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
   postup se ukládají do localStorage na konkrétním zařízení/prohlížeči.
-- Pod výběrem sektoru lze zadat původní pětiznakové heslo ze
+- V pravém panelu lze zadat původní pětiznakové heslo ze
   [seznamu PMD 85](https://www.pmd85.cz/wp-content/uploads/hesla.txt).
   Odemkne přesně příslušnou pětici sektorů a spustí její první místnost.
   Velikost písmen nerozhoduje, interpunkce je součástí hesla. Odemčení zůstává

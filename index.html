@@ -44,19 +44,24 @@
           <div class="screen-wrap" :class="{ 'show-title': mode === 'ready' }">
             <div class="game-hud sr-only"><span>{{ t('game.scene') }} <b>{{ String(scene).padStart(3, '0') }}</b></span><span class="lives" :aria-label="plural('game.lives', lives)">{{ lives }}</span><span class="mushroom-count">{{ t('game.ammo') }} <b>{{ ammo }}</b></span><span>{{ t('game.time') }} <b>{{ timeText }}</b></span></div>
             <div class="viewport" :style="{ aspectRatio: String(gameAspect) }">
-              <canvas ref="canvas" width="240" height="200" tabindex="0" :class="{ 'modern-graphics': graphics === 'modern' }" :data-graphics="graphics" :data-state="mode" :data-transition="transitionPhase || undefined" :aria-label="t('game.canvas')"></canvas>
-              <button v-if="mode === 'ready'" class="title-screen" @click="start" :aria-label="t('game.start')">
+              <canvas ref="canvas" width="240" height="200" tabindex="0" :inert="sectorMenuOpen" :class="{ 'modern-graphics': graphics === 'modern' }" :data-graphics="graphics" :data-state="mode" :data-transition="transitionPhase || undefined" :aria-label="t('game.canvas')"></canvas>
+              <button v-if="mode === 'ready'" class="title-screen" :inert="sectorMenuOpen" @click="start" :aria-label="t('game.start')">
                 <span class="title-art"><img :src="titleScreen.src" :width="titleScreen.width" :height="titleScreen.height" :alt="t('game.titleImageMode', {version: t('graphics.' + graphics)})" fetchpriority="high" draggable="false"></span>
                 <span class="title-prompt">{{ t('game.startPrompt') }} <kbd>{{ t('key.space') }}</kbd></span>
               </button>
-              <div v-if="mode === 'paused' || (mode === 'dead' && !lives && deathReady) || mode === 'won'" class="overlay">
+              <div v-if="!sectorMenuOpen && (mode === 'paused' || (mode === 'dead' && !lives && deathReady) || mode === 'won')" class="overlay">
                 <template v-if="mode === 'paused'"><span class="overlay-kicker">{{ t('pause.kicker') }}</span><h2>{{ t('pause.title') }}</h2><button class="primary" @click="resume">{{ t('action.resume') }} ↵</button></template>
                 <template v-if="mode === 'dead'"><span class="overlay-kicker">{{ t(lives ? 'death.tryKicker' : 'death.overKicker') }}</span><h2>{{ t(lives ? 'death.tryTitle' : 'death.overTitle') }}</h2><p>{{ message ? t(message) : '' }}</p><button class="primary" @click="retry">{{ t(lives ? 'action.retry' : 'action.newGame') }} ↵</button></template>
                 <template v-if="mode === 'won'"><span class="overlay-kicker">{{ t('win.kicker') }}</span><h2>{{ t('win.title') }}</h2><p>{{ t('win.scene', {scene}) }}{{ scene === 200 ? ' ' + t('win.finished') : '' }}</p><button class="primary" @click="next">{{ t(scene === 200 ? 'action.fromStart' : 'action.next') }} ↵</button></template>
               </div>
+              <section v-if="sectorMenuOpen" ref="sectorOverlay" id="sector-dialog" class="sector-overlay" role="dialog" aria-modal="true" aria-labelledby="sector-title">
+                <div class="sector-heading"><h2 id="sector-title">{{ t('scene.title') }}</h2><button class="sector-close" @click="closeSectors" :aria-label="t('scene.close')" :title="t('scene.close')">×</button></div>
+                <div class="sector-scroll"><div ref="sectorGrid" class="sector-grid" role="group" :aria-label="t('scene.title')"><button v-for="n in 200" :key="n" :data-sector="n" :disabled="!accessibleScenes.includes(n)" :class="{current: n === scene}" :aria-current="n === scene ? 'true' : undefined" :aria-label="t(accessibleScenes.includes(n) ? 'scene.option' : 'scene.locked', {scene: n})" @click="chooseScene(n)">{{ n }}</button></div></div>
+                <small>{{ t('scene.unlocked', {count: accessibleScenes.length}) }}</small>
+              </section>
             </div>
           </div>
-          <div class="machine-controls"><button @click="togglePause" :disabled="!['playing','entering','transition','paused'].includes(mode) && !(mode === 'dead' && !deathReady)">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button @click="restart">↻ {{ t('action.restart') }} <kbd>R</kbd></button></div>
+          <div class="machine-controls"><button class="pause-button" @click="togglePause" :disabled="sectorMenuOpen || (!['playing','entering','transition','paused'].includes(mode) && !(mode === 'dead' && !deathReady))">{{ mode === 'paused' ? '▶ ' + t('action.resume') : 'Ⅱ ' + t('action.pause') }} <kbd>P</kbd></button><button ref="sectorTrigger" class="sector-toggle" @click="toggleSectors" aria-haspopup="dialog" aria-controls="sector-dialog" :aria-expanded="sectorMenuOpen">{{ t('action.sectors') }}</button><button class="restart-button" @click="restart" :disabled="sectorMenuOpen">↻ {{ t('action.restart') }} <kbd>R</kbd></button></div>
           <div class="touch-controls" :aria-label="t('touch.label')"><div class="dpad"><button class="up" :aria-label="t('direction.up')" @pointerdown.prevent="hold(0,-1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↑</button><button class="left" :aria-label="t('direction.left')" @pointerdown.prevent="hold(-1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">←</button><button class="down" :aria-label="t('direction.down')" @pointerdown.prevent="hold(0,1)" @pointerup="release" @pointerleave="release" @pointercancel="release">↓</button><button class="right" :aria-label="t('direction.right')" @pointerdown.prevent="hold(1,0)" @pointerup="release" @pointerleave="release" @pointercancel="release">→</button></div><button class="fire" @click="fire">{{ t('action.fire') }}<br><small>{{ t('action.fireObject') }}</small></button></div>
         </section>
         <aside>
@@ -65,7 +70,7 @@
           <article class="guide"><span class="step">02</span><div><h3>{{ t('guide.stoneTitle') }}</h3><p>{{ t('guide.stoneText') }}</p></div></article>
           <article class="guide"><span class="step">03</span><div><h3>{{ t('guide.enemyTitle') }}</h3><p>{{ t('guide.enemyText') }}</p></div></article>
           <div class="keys"><h3>{{ t('keys.title') }}</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>{{ t('keys.move') }}</span></p><p><kbd class="space">{{ t('key.space') }}</kbd><span>{{ t('keys.fire') }}</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>{{ t('keys.pauseRestart') }}</span></p><p class="global-keys">{{ t('keys.global') }}</p></div>
-          <div class="scene-picker"><label for="scene">{{ t('scene.choose') }}</label><div><select id="scene" v-model.number="selectedScene"><option v-for="n in accessibleScenes" :key="n" :value="n">{{ t('scene.option', {scene: String(n).padStart(3,'0')}) }}</option></select><button @click="chooseScene" :aria-label="t('scene.open')">↗</button></div><small>{{ t('scene.unlocked', {count: accessibleScenes.length}) }}</small>
+          <div class="password-panel">
             <form class="password-form" @submit.prevent="openPassword" novalidate>
               <label for="sector-password">{{ t('password.label') }}</label>
               <div class="password-controls"><input id="sector-password" v-model="passwordInput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" :spellcheck="false" aria-describedby="password-hint password-feedback" @focus="pauseForPassword" @input="passwordMessage = ''"><button type="submit">{{ t('password.submit') }}</button></div>

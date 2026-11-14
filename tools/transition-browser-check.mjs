@@ -45,7 +45,7 @@ try{
  }
  assert.equal(visibility.size,2,'Flappy must visibly blink');
  await until(`document.querySelector('canvas').dataset.transition==='cover'`);
- await evaluate(`document.querySelector('.machine-controls button').click()`);
+ await evaluate(`document.querySelector('.pause-button').click()`);
  await until(`document.querySelector('canvas').dataset.state==='paused'`);
  const frozen=await evaluate(`document.querySelector('canvas').toDataURL()`);
  await delay(300);assert.equal(await evaluate(`document.querySelector('canvas').toDataURL()`),frozen);
@@ -60,7 +60,7 @@ try{
  assert.equal(await evaluate(`document.querySelector('.game-hud span:last-child b').textContent`),'6:00');
  await until(`document.querySelector('canvas').dataset.state==='playing'`);
  assert.equal(await evaluate(`Number(document.querySelector('.lives').textContent)`),5);
- assert.equal(await evaluate(`document.querySelector('#scene').value`),'2');
+ assert.equal(await evaluate(`document.querySelector('.game-hud span:first-child b').textContent`),'002');
  assert.deepEqual(await evaluate(`JSON.parse(localStorage.getItem('flappy-pmd85-progress-v1'))`),{scene:2,unlocked:2,bonus:[]});
  // Completion of the final scene must stop on the victory screen.
  await evaluate(`localStorage.setItem('flappy-pmd85-progress-v1',JSON.stringify({scene:200,unlocked:200}))`);

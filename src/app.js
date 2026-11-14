@@ -18,7 +18,9 @@ createApp({setup(){
   const plural=(key,count)=>translatePlural(language.value,key,count);
   const progress=loadProgress(),unlocked=ref(progress.unlocked),bonusScenes=ref(progress.bonus);
   const accessibleScenes=computed(()=>availableSectors(unlocked.value,bonusScenes.value));
-  const canvas=ref(null),scene=ref(accessibleScenes.value.includes(progress.scene)?progress.scene:1),selectedScene=ref(scene.value);
+  const canvas=ref(null),scene=ref(accessibleScenes.value.includes(progress.scene)?progress.scene:1);
+  const sectorMenuOpen=ref(false),sectorTrigger=ref(null),sectorGrid=ref(null),sectorOverlay=ref(null);
+  let sectorAutoPaused=false;
   const mode=ref('ready'),lives=ref(5),ammo=ref(0),remaining=ref(360),sound=ref(loadSound()),installPrompt=ref(null),message=ref(''),notice=ref('');
   const passwordInput=ref(''),passwordMessage=ref(''),passwordRange=ref({first:'',last:''});
   const transitionPhase=ref('');
@@ -59,7 +61,40 @@ createApp({setup(){
     const opened=event.currentTarget===graphicsPicker.value?graphicsMenuOpen.value:languageMenuOpen.value;
     if(opened&&!event.currentTarget.contains(event.relatedTarget))closeMenus();
   }
-  function outsideControls(event){if((languageMenuOpen.value&&!languagePicker.value?.contains(event.target))||(graphicsMenuOpen.value&&!graphicsPicker.value?.contains(event.target)))closeMenus()}
+  function outsideControls(event){
+    if(sectorMenuOpen.value&&!sectorOverlay.value?.contains(event.target)&&!sectorTrigger.value?.contains(event.target))closeSectors(false);
+    if((languageMenuOpen.value&&!languagePicker.value?.contains(event.target))||(graphicsMenuOpen.value&&!graphicsPicker.value?.contains(event.target)))closeMenus();
+  }
+  async function toggleSectors(){
+    if(sectorMenuOpen.value){closeSectors();return}
+    closeMenus();
+    sectorAutoPaused=['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value);
+    if(sectorAutoPaused)togglePause();
+    held=null;release();sectorMenuOpen.value=true;
+    await nextTick();sectorGrid.value?.querySelector(`[data-sector="${scene.value}"]`)?.focus({preventScroll:true});
+    sectorGrid.value?.querySelector(`[data-sector="${scene.value}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});
+  }
+  function closeSectors(restoreFocus=true){
+    sectorMenuOpen.value=false;
+    const shouldResume=sectorAutoPaused;sectorAutoPaused=false;
+    if(shouldResume&&mode.value==='paused')resume();
+    if(restoreFocus&&!shouldResume)void nextTick(()=>sectorTrigger.value?.focus({preventScroll:true}));
+  }
+  function sectorKey(event){
+    if(!sectorMenuOpen.value)return false;
+    if(event.key==='Escape'){event.preventDefault();closeSectors();return true}
+    if(event.key==='Tab'){
+      const options=Array.from(sectorOverlay.value?.querySelectorAll('button:not(:disabled)')??[]),index=options.indexOf(document.activeElement);
+      if(index<0||(event.shiftKey&&index===0)||(!event.shiftKey&&index===options.length-1)){event.preventDefault();options[event.shiftKey?options.length-1:0]?.focus()}
+      return true;
+    }
+    const number=Number(document.activeElement?.dataset.sector),step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-20,ArrowDown:20}[event.key];
+    let target;
+    if(step){event.preventDefault();for(let n=number+step;n>=1&&n<=200;n+=step)if(accessibleScenes.value.includes(n)){target=n;break}}
+    if(event.key==='Home'||event.key==='End'){event.preventDefault();target=event.key==='Home'?accessibleScenes.value[0]:accessibleScenes.value.at(-1)}
+    if(target)sectorGrid.value?.querySelector(`[data-sector="${target}"]`)?.focus();
+    return true; // Native Enter/Space still activates the focused sector button.
+  }
   function menuKey(event){
     if(!languageMenuOpen.value&&!graphicsMenuOpen.value)return false;
     const picker=graphicsMenuOpen.value?graphicsPicker:languagePicker;
@@ -129,14 +164,15 @@ createApp({setup(){
     const found=findSectorPassword(passwordInput.value);
     if(!found){passwordMessage.value='password.invalid';return}
     bonusScenes.value=[...new Set([...bonusScenes.value,...Array.from({length:found.last-found.first+1},(_,i)=>found.first+i)])];
-    selectedScene.value=found.first;passwordRange.value={first:String(found.first).padStart(3,'0'),last:String(found.last).padStart(3,'0')};
-    passwordMessage.value='password.opened';passwordInput.value='';chooseScene();
+    passwordRange.value={first:String(found.first).padStart(3,'0'),last:String(found.last).padStart(3,'0')};
+    passwordMessage.value='password.opened';passwordInput.value='';chooseScene(found.first);
   }
   function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});motion.reset(game);remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
   function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t(retroModes.includes(graphics.value)?'game.originalCredit':'game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
   function focus(){canvas.value?.focus({preventScroll:true})}
-  function start(){transition=null;transitionPhase.value='';notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
+  function start(){sectorMenuOpen.value=false;sectorAutoPaused=false;transition=null;transitionPhase.value='';notice.value='';reset({entering:true});mode.value='entering';last=performance.now();focus();save();beep('start')}
   function returnTitle(){
+    sectorMenuOpen.value=false;sectorAutoPaused=false;
     closeMenus(false,false);release();held=null;audio.stop();transition=null;transitionPhase.value='';
     mode.value='ready';pausedFrom='playing';lives.value=5;message.value='';notice.value='';reset();save();
     void nextTick(()=>document.querySelector('.title-screen')?.focus({preventScroll:true}));
@@ -145,8 +181,8 @@ createApp({setup(){
   function togglePause(){if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value)){pausedFrom=mode.value;mode.value='paused';held=null;release();audio.stop()}else if(mode.value==='paused')resume()}
   function restart(){start()}
   function retry(){if(!lives.value)lives.value=5;start()}
-  function next(){if(scene.value===200){scene.value=1;lives.value=5}else scene.value++;selectedScene.value=scene.value;start()}
-  function chooseScene(){if(!accessibleScenes.value.includes(selectedScene.value))return;scene.value=selectedScene.value;lives.value=5;start()}
+  function next(){if(scene.value===200){scene.value=1;lives.value=5}else scene.value++;start()}
+  function chooseScene(n){if(!accessibleScenes.value.includes(n))return;scene.value=n;lives.value=5;start()}
   function beep(event){if(sound.value&&event)void audio.play(event)}
   function toggleSound(){
     if(!audioAvailable)return;
@@ -174,6 +210,7 @@ createApp({setup(){
   function release(){clearInterval(holdTimer);holdTimer=null}
   const directions={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],KeyW:[0,-1],KeyS:[0,1],KeyA:[-1,0],KeyD:[1,0]};
   function keydown(e){
+    if(!e.defaultPrevented&&!e.isComposing&&sectorKey(e))return;
     if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.isComposing)return;
     if(e.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]'))return;
     if(menuKey(e))return;
@@ -209,7 +246,7 @@ createApp({setup(){
     }
     else if(mode.value==='transition'){
       const result=transition.advance(delta);transitionPhase.value=transition.phase;
-      if(result.loadNext){scene.value++;selectedScene.value=scene.value;reset({entering:true});save()}
+      if(result.loadNext){scene.value++;reset({entering:true});save()}
       if(result.finished){
         const final=transition.final;transition=null;transitionPhase.value='';elapsed=0;held=null;
         mode.value=final?'won':'entering';
@@ -240,5 +277,5 @@ createApp({setup(){
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
   onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
-  return{accessibleScenes,passwordInput,passwordMessage,passwordRange,pauseForPassword,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,selectedScene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  return{sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordMessage,passwordRange,pauseForPassword,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');
