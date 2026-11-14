@@ -165,7 +165,7 @@ try{
  await delay(200);const mobile=await call('Page.captureScreenshot',{format:'png'});saveImage('graphics-menu-mobile.png',`data:image/png;base64,${mobile.data}`);
  for(const mode of ['sharp','msx','nes'])for(const [width,height]of [[320,568],[844,390]]){
   await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true});await choose(mode);await delay(120);
-  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.machine').getBoundingClientRect();return r.top>=63 && r.bottom<=innerHeight+1 && r.left>=0 && r.right<=innerWidth})()`),true,mode+' expanded viewport fit');
+  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.machine').getBoundingClientRect();return r.top>=(document.querySelector('.application').classList.contains('mobile-landscape')?0:63) && r.bottom<=innerHeight+1 && r.left>=0 && r.right<=innerWidth})()`),true,mode+' expanded viewport fit');
  }
  assert.deepEqual(errors,[]);console.log('Graphics browser OK: eight walk frames per side, clickable title header, all six modes, keyboard menu, exact game-state preservation, 1280×800 PC rendering, stored preference, offline switching and 320px toolbar.');
 }finally{

@@ -235,7 +235,7 @@ try{
   await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:coarse});
   await call('Emulation.setTouchEmulationEnabled',{enabled:coarse});
   await delay(150);
-  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.machine').getBoundingClientRect();return r.top>=63 && r.bottom<=innerHeight && r.left>=0 && r.right<=innerWidth})()`),true,`Expanded game must fit ${width}x${height}`);
+  assert.equal(await evaluate(`(()=>{const r=document.querySelector('.machine').getBoundingClientRect();return r.top>=(document.querySelector('.application').classList.contains('mobile-landscape')?0:63) && r.bottom<=innerHeight && r.left>=0 && r.right<=innerWidth})()`),true,`Expanded game must fit ${width}x${height}`);
   assert.equal(await evaluate(`(()=>{const r=document.querySelector('.global-controls').getBoundingClientRect();return r.top>=0&&r.right<=innerWidth})()`),true);
  }
  await screenshot('expanded-mobile.png');

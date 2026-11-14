@@ -81,3 +81,43 @@ body.game-expanded{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.toolbar-menu-enter-active,.toolbar-menu-leave-active{transition:none}}
 @media(max-width:760px){.header-actions>.text-button{display:block;order:2;flex-basis:100%;text-align:right;padding:2px 0}}
 @media(pointer:coarse) and (orientation:landscape) and (max-height:520px) and (max-width:599px){.expanded-mode .touch-controls{position:static;pointer-events:auto}}
+/* Board interaction and a gamepad with no selectable arrow text. */
+canvas{touch-action:manipulation}
+.overlay.pause-overlay{background:#080b0874}
+.touch-controls,.touch-controls *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.touch-controls{gap:20px}
+.dpad{--pad-cell:42px;grid-template:repeat(3,var(--pad-cell))/repeat(3,var(--pad-cell));gap:0;width:calc(3 * var(--pad-cell));height:calc(3 * var(--pad-cell));filter:drop-shadow(0 4px 1px #0005)}
+.dpad button{display:flex;align-items:center;justify-content:center;padding:7px;background:linear-gradient(#47563a,#34432b);color:#d9e8c5;border:1px solid #657650;border-bottom-width:3px;touch-action:none}
+.dpad .up{grid-area:1/2;border-bottom:0;border-radius:8px 8px 0 0}
+.dpad .left{grid-area:2/1;border-right:0;border-radius:8px 0 0 8px}
+.dpad .right{grid-area:2/3;border-left:0;border-radius:0 8px 8px 0}
+.dpad .down{grid-area:3/2;border-top:0;border-radius:0 0 8px 8px}
+.dpad-centre{grid-area:2/2;display:grid;place-items:center;background:#3b4933}
+.dpad-centre:after{content:'';width:18px;height:18px;border-radius:50%;background:#293421;box-shadow:inset 1px 2px 3px #0007}
+.dpad svg{display:block;width:24px;height:24px;fill:currentColor;pointer-events:none}
+.dpad .left svg{transform:rotate(-90deg)}
+.dpad .right svg{transform:rotate(90deg)}
+.dpad .down svg{transform:rotate(180deg)}
+.touch-controls .fire{display:grid;place-items:center;width:74px;height:74px;padding:17px;border:2px solid #a3b77f;border-bottom-width:5px;border-radius:50%;background:linear-gradient(#7d9457,#536b35);color:#eff7df;box-shadow:0 4px 2px #0005;touch-action:none}
+.fire svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+@media(pointer:coarse) and (orientation:portrait) and (max-width:760px){
+ .machine{padding:10px 6px 0}.machine-top{margin-bottom:12px}.screen-wrap{padding:3px}
+ .expanded-mode .machine{padding:6px 4px 0}.expanded-mode .screen-wrap{padding:2px}
+}
+/* On a landscape phone the game uses the full height, with controls in side rails. */
+body.mobile-landscape{overflow:hidden}
+.mobile-landscape.application{position:fixed;inset:0;z-index:100;height:100dvh;background:var(--bg);overflow:hidden}
+.mobile-landscape .masthead{position:fixed;inset:0 0 auto auto;width:92px;height:0;min-height:0;max-width:none;padding:0;border:0;z-index:120}
+.mobile-landscape .wordmark,.mobile-landscape .header-actions>.text-button,.mobile-landscape .intro,.mobile-landscape aside,.mobile-landscape .notice,.mobile-landscape .about,.mobile-landscape footer,.mobile-landscape .machine-top{display:none}
+.mobile-landscape .global-controls{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));flex-direction:column;gap:6px;z-index:120}
+.mobile-landscape .topbar-button{width:36px;height:36px;padding:6px}
+.mobile-landscape .language-switch{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(58px,calc(env(safe-area-inset-right) + 50px));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));transform-origin:top right;overflow-y:auto}
+.mobile-landscape main{max-width:none;width:100%;height:100dvh;display:flex;align-items:center;justify-content:center;padding:max(6px,env(safe-area-inset-top)) max(92px,calc(env(safe-area-inset-right) + 72px)) max(6px,env(safe-area-inset-bottom)) max(132px,calc(env(safe-area-inset-left) + 124px))}
+.mobile-landscape .game-layout{display:block;width:var(--expanded-machine-width);max-width:100%;margin:0}
+.mobile-landscape .machine{width:100%;padding:4px 4px 0}
+.mobile-landscape .screen-wrap{padding:2px}
+.mobile-landscape .machine-controls{padding:6px 0;font-size:10px}
+.mobile-landscape .touch-controls{position:fixed;inset:0;display:block;padding:0;border:0;background:none;pointer-events:none;z-index:110}
+.mobile-landscape .dpad{--pad-cell:36px;position:absolute;left:max(8px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));pointer-events:auto}
+.mobile-landscape .touch-controls button{pointer-events:auto}
+.mobile-landscape .fire{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));width:64px;height:64px;padding:12px}

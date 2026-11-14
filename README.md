@@ -26,6 +26,8 @@ ani service worker.
 - Kliknutí na záhlaví herního okna vrátí úvodní obrazovku. Vybraný sektor a odemčený postup zůstanou uložené.
 - Šipky / WASD: pohyb. Mezerník: vystřelit nasbíranou houbu.
 - P / Escape: pauza. R: opakovat místnost. Enter: pokračovat.
+- Kliknutí nebo klepnutí přímo na rozehranou plochu také vyvolá pauzu.
+  Pozadí pauzy má poloviční krytí, takže zůstává lépe vidět stav místnosti.
 - Tlačítko **Sektor** vedle pauzy otevře nad herní plochou matici 20 × 10 se
   všemi 200 sektory. Dostupné sektory jsou zvýrazněné; kliknutí nebo klepnutí
   zahájí vybranou místnost. Aktuální sektor má světlý rámeček, zamčené nelze
@@ -34,6 +36,12 @@ ani service worker.
   výběru stojí; zavření zachová předchozí stav pauzy. Na mobilu lze matici
   posouvat uvnitř herního okna. Výběr funguje také ve zvětšeném a offline režimu.
 - Na dotykovém zařízení se zobrazí směrový ovladač a tlačítko střelby.
+  Ovladač tvoří herní kříž se čtyřmi SVG šipkami a kulaté tlačítko s houbou.
+  Šipku lze držet pro opakovaný pohyb; ovladač nezpřístupňuje výběr textu ani
+  kontextové menu při dlouhém dotyku. Na výšku má hra užší černý rám.
+  Na telefonu na šířku se automaticky zobrazí hra přes dostupnou výšku,
+  kříž vlevo a ikony nastavení s tlačítkem střelby vpravo. Po otočení zpět
+  se obnoví běžné rozložení stránky.
 - Dostaň modrý krystal na cílovou podložku. V režimu PMD 85-1 ho poznáš podle
   světlé výplně. Krystal i obyčejné kameny padají,
   běžné kameny lze rozbít tlakem proti překážce ze strany nebo shora. Padající předměty drtí obludy
@@ -53,6 +61,7 @@ ani service worker.
   místnost se nezmění; po odemčení lze zvolit libovolný zpřístupněný sektor.
   Velikost písmen nerozhoduje, interpunkce je součástí hesla. Odemčení zůstává
   uložené i pro offline hraní; ostatní neodehrané sektory zůstávají zamčené.
+  Úspěšné potvrzení přehraje stejný zvuk jako start hry, pokud je zvuk zapnutý.
 - Životy, sektor a čas jsou vykreslené přímo v horním zdivu herního Canvasu.
   Pod nápisem SEKTOR je za každou nasbíranou houbu jedna její ikona. Po výstřelu
   ikona zmizí. Počet hub ani doplňkový slogan se pod herní plochou nezobrazují.

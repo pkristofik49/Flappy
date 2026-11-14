@@ -29,7 +29,8 @@ createApp({setup(){
   const graphics=ref(loadGraphics()),graphicsMenuOpen=ref(false),graphicsPicker=ref(null),graphicsMenuButton=ref(null),graphicsReady=ref(false);
   let modernAtlas=null;
   const motion=new Motion();
-  const expanded=ref(false),expandedWidth=ref(760);
+  const expanded=ref(false),expandedWidth=ref(760),mobileLandscape=ref(false);
+  const mobileLayoutQuery=window.matchMedia('(pointer:coarse) and (orientation:landscape) and (max-height:520px)');
   const gameAspect=computed(()=>graphics.value==='modern'||retroModes.includes(graphics.value)?1.6:1.2);
   const titleScreen=computed(()=>graphics.value==='modern'&&graphicsReady.value?pcTitle(modernAtlas,t('brand.name'),t('game.pcTitleSubtitle'),t('graphics.modern')):titleScreens[graphics.value]??titleScreens.mono);
   const audioAvailable=Boolean(window.AudioContext||window.webkitAudioContext);
@@ -110,15 +111,21 @@ createApp({setup(){
     return false;
   }
   async function sizeExpanded(){
+    mobileLandscape.value=mobileLayoutQuery.matches;
+    document.body.classList.toggle('mobile-landscape',mobileLandscape.value);
     for(let pass=0;pass<2;pass++){
-      await nextTick();if(!expanded.value)return;
+      await nextTick();if(!expanded.value&&!mobileLandscape.value)return;
       const machine=document.querySelector('.machine'),board=document.querySelector('.viewport');
       if(!machine||!board)return;
       const machineRect=machine.getBoundingClientRect(),boardRect=board.getBoundingClientRect();
       const width=window.visualViewport?.width??window.innerWidth,height=window.visualViewport?.height??window.innerHeight;
-      const sideControls=window.matchMedia('(pointer:coarse)').matches&&width>=600&&width>height&&height<=520;
       const chromeHeight=machineRect.height-boardRect.height,chromeWidth=machineRect.width-boardRect.width;
-      expandedWidth.value=Math.max(140,Math.min(width-(sideControls?340:24),Math.max(80,height-76-chromeHeight)*gameAspect.value+chromeWidth));
+      if(mobileLandscape.value){
+        const mainStyle=getComputedStyle(document.querySelector('main'));
+        const availableWidth=width-parseFloat(mainStyle.paddingLeft)-parseFloat(mainStyle.paddingRight);
+        const availableHeight=height-parseFloat(mainStyle.paddingTop)-parseFloat(mainStyle.paddingBottom);
+        expandedWidth.value=Math.max(80,Math.min(availableWidth,Math.max(40,availableHeight-chromeHeight)*gameAspect.value+chromeWidth));
+      }else expandedWidth.value=Math.max(140,Math.min(width-24,Math.max(80,height-76-chromeHeight)*gameAspect.value+chromeWidth));
     }
   }
   async function toggleExpanded(){
@@ -126,7 +133,7 @@ createApp({setup(){
     if(!expanded.value)previousScroll=window.scrollY;
     expanded.value=!expanded.value;
     document.body.classList.toggle('game-expanded',expanded.value);
-    if(expanded.value)await sizeExpanded();else{await nextTick();window.scrollTo(0,previousScroll)}
+    if(expanded.value)await sizeExpanded();else{await nextTick();if(mobileLandscape.value)await sizeExpanded();else window.scrollTo(0,previousScroll)}
     focus();
   }
   function setLanguage(code){
@@ -136,14 +143,14 @@ createApp({setup(){
     closeMenus();
     if(['playing','entering','transition'].includes(mode.value))focus();
     else void nextTick(()=>languageMenuButton.value?.focus({preventScroll:true}));
-    if(expanded.value)void sizeExpanded();
+    if(expanded.value||mobileLandscape.value)void sizeExpanded();
   }
   function setGraphics(value){
     if(!graphicsModes.includes(value)||(value==='modern'&&!graphicsReady.value))return;
     graphics.value=value;
     try{localStorage.setItem(GRAPHICS_KEY,value)}catch{/* Keep the in-memory choice. */}
     closeMenus();paint();
-    if(expanded.value)void sizeExpanded();
+    if(expanded.value||mobileLandscape.value)void sizeExpanded();
     if(['playing','entering','transition'].includes(mode.value))focus();
     else void nextTick(()=>graphicsMenuButton.value?.focus({preventScroll:true}));
   }
@@ -164,7 +171,7 @@ createApp({setup(){
     const found=findSectorPassword(passwordInput.value);
     if(!found){passwordInvalid.value=true;return}
     bonusScenes.value=[...new Set([...bonusScenes.value,...Array.from({length:found.last-found.first+1},(_,i)=>found.first+i)])];
-    passwordInvalid.value=false;passwordInput.value='';save();
+    passwordInvalid.value=false;passwordInput.value='';save();void nextTick(()=>beep('start'));
   }
   function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});motion.reset(game);remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
   function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t(retroModes.includes(graphics.value)?'game.originalCredit':'game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
@@ -178,6 +185,7 @@ createApp({setup(){
   }
   function resume(){mode.value=pausedFrom;held=null;last=performance.now();focus()}
   function togglePause(){if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value)){pausedFrom=mode.value;mode.value='paused';held=null;release();audio.stop()}else if(mode.value==='paused')resume()}
+  function pauseFromBoard(){if(!sectorMenuOpen.value&&mode.value!=='paused')togglePause()}
   function restart(){start()}
   function retry(){if(!lives.value)lives.value=5;start()}
   function next(){if(scene.value===200){scene.value=1;lives.value=5}else scene.value++;start()}
@@ -205,7 +213,7 @@ createApp({setup(){
   }
   function move(dx,dy){if(mode.value!=='playing')return;game.move(dx,dy);sync()}
   function fire(){if(mode.value!=='playing')return;if(!game.ammo){notice.value='notice.noAmmo';return}game.fire();sync()}
-  function hold(dx,dy){release();move(dx,dy);if(mode.value==='playing')holdTimer=setInterval(()=>move(dx,dy),120)}
+  function hold(dx,dy,event){event?.currentTarget?.setPointerCapture?.(event.pointerId);release();move(dx,dy);if(mode.value==='playing')holdTimer=setInterval(()=>move(dx,dy),120)}
   function release(){clearInterval(holdTimer);holdTimer=null}
   const directions={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],KeyW:[0,-1],KeyS:[0,1],KeyA:[-1,0],KeyD:[1,0]};
   function keydown(e){
@@ -265,6 +273,7 @@ createApp({setup(){
     last=now;timer=requestAnimationFrame(frame);
   }
   onMounted(()=>{
+    void sizeExpanded();mobileLayoutQuery.addEventListener('change',sizeExpanded);
     ctx=canvas.value.getContext('2d');reset();timer=requestAnimationFrame(frame);
     void loadModernSprites().then(atlas=>{modernAtlas=atlas;graphicsReady.value=true;paint()}).catch(()=>{if(graphics.value==='modern')graphics.value='mono';notice.value='notice.graphicsUnavailable';paint()});
     window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',blur);document.addEventListener('visibilitychange',visibility);
@@ -275,6 +284,6 @@ createApp({setup(){
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)notice.value='notice.update'})});
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
-  onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
-  return{sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordInvalid,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded','mobile-landscape');mobileLayoutQuery.removeEventListener('change',sizeExpanded);window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
+  return{mobileLandscape,pauseFromBoard,sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordInvalid,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');
