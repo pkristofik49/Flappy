@@ -47,9 +47,10 @@ ani service worker.
   0,6 sekundy herního času a po zmizení těla pokračuje v pádu; pauza časování zastaví.
 - 5 životů, 6 minut na scénu. Odehrané scény se odemykají. Místnost i odemčený
   postup se ukládají do localStorage na konkrétním zařízení/prohlížeči.
-- V pravém panelu lze zadat původní pětiznakové heslo ze
+- Vpravo v dolním řádku výběru sektorů lze zadat původní pětiznakové heslo ze
   [seznamu PMD 85](https://www.pmd85.cz/wp-content/uploads/hesla.txt).
-  Odemkne přesně příslušnou pětici sektorů a spustí její první místnost.
+  Odemkne přesně příslušnou pětici sektorů přímo v otevřené matici. Rozehraná
+  místnost se nezmění; po odemčení lze zvolit libovolný zpřístupněný sektor.
   Velikost písmen nerozhoduje, interpunkce je součástí hesla. Odemčení zůstává
   uložené i pro offline hraní; ostatní neodehrané sektory zůstávají zamčené.
 - Životy, sektor a čas jsou vykreslené přímo v horním zdivu herního Canvasu.

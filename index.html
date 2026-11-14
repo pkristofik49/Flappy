@@ -57,7 +57,16 @@
               <section v-if="sectorMenuOpen" ref="sectorOverlay" id="sector-dialog" class="sector-overlay" role="dialog" aria-modal="true" aria-labelledby="sector-title">
                 <div class="sector-heading"><h2 id="sector-title">{{ t('scene.title') }}</h2><button class="sector-close" @click="closeSectors" :aria-label="t('scene.close')" :title="t('scene.close')">×</button></div>
                 <div class="sector-scroll"><div ref="sectorGrid" class="sector-grid" role="group" :aria-label="t('scene.title')"><button v-for="n in 200" :key="n" :data-sector="n" :disabled="!accessibleScenes.includes(n)" :class="{current: n === scene}" :aria-current="n === scene ? 'true' : undefined" :aria-label="t(accessibleScenes.includes(n) ? 'scene.option' : 'scene.locked', {scene: n})" @click="chooseScene(n)">{{ n }}</button></div></div>
-                <small>{{ t('scene.unlocked', {count: accessibleScenes.length}) }}</small>
+                <div class="sector-footer">
+                  <small class="sector-progress">{{ t('scene.unlocked', {count: accessibleScenes.length}) }}</small>
+                  <form class="password-form" @submit.prevent="openPassword" novalidate>
+                    <label for="sector-password">{{ t('password.label') }}</label>
+                    <input id="sector-password" v-model="passwordInput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" :spellcheck="false" :aria-invalid="passwordMessage === 'password.invalid'" aria-describedby="password-hint password-feedback" @input="passwordMessage = ''">
+                    <button class="password-submit" type="submit">{{ t('password.submit') }}</button>
+                    <span id="password-hint" class="sr-only">{{ t('password.hint') }}</span>
+                  </form>
+                </div>
+                <p v-show="passwordMessage" id="password-feedback" class="password-feedback" :class="{invalid: passwordMessage === 'password.invalid'}" role="status">{{ passwordMessage ? t(passwordMessage, passwordRange) : '' }}</p>
               </section>
             </div>
           </div>
@@ -70,14 +79,6 @@
           <article class="guide"><span class="step">02</span><div><h3>{{ t('guide.stoneTitle') }}</h3><p>{{ t('guide.stoneText') }}</p></div></article>
           <article class="guide"><span class="step">03</span><div><h3>{{ t('guide.enemyTitle') }}</h3><p>{{ t('guide.enemyText') }}</p></div></article>
           <div class="keys"><h3>{{ t('keys.title') }}</h3><p><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><span>{{ t('keys.move') }}</span></p><p><kbd class="space">{{ t('key.space') }}</kbd><span>{{ t('keys.fire') }}</span></p><p><span><kbd>P</kbd> <kbd>R</kbd></span><span>{{ t('keys.pauseRestart') }}</span></p><p class="global-keys">{{ t('keys.global') }}</p></div>
-          <div class="password-panel">
-            <form class="password-form" @submit.prevent="openPassword" novalidate>
-              <label for="sector-password">{{ t('password.label') }}</label>
-              <div class="password-controls"><input id="sector-password" v-model="passwordInput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" :spellcheck="false" aria-describedby="password-hint password-feedback" @focus="pauseForPassword" @input="passwordMessage = ''"><button type="submit">{{ t('password.submit') }}</button></div>
-              <small id="password-hint">{{ t('password.hint') }}</small>
-              <p id="password-feedback" class="password-feedback" role="status">{{ passwordMessage ? t(passwordMessage, passwordRange) : '' }}</p>
-            </form>
-          </div>
         </aside>
       </div>
       <p class="notice" aria-live="polite">{{ t(notice || 'notice.default') }}</p>

@@ -70,7 +70,7 @@ createApp({setup(){
     closeMenus();
     sectorAutoPaused=['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value);
     if(sectorAutoPaused)togglePause();
-    held=null;release();sectorMenuOpen.value=true;
+    held=null;release();passwordMessage.value='';sectorMenuOpen.value=true;
     await nextTick();sectorGrid.value?.querySelector(`[data-sector="${scene.value}"]`)?.focus({preventScroll:true});
     sectorGrid.value?.querySelector(`[data-sector="${scene.value}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});
   }
@@ -84,10 +84,11 @@ createApp({setup(){
     if(!sectorMenuOpen.value)return false;
     if(event.key==='Escape'){event.preventDefault();closeSectors();return true}
     if(event.key==='Tab'){
-      const options=Array.from(sectorOverlay.value?.querySelectorAll('button:not(:disabled)')??[]),index=options.indexOf(document.activeElement);
+      const options=Array.from(sectorOverlay.value?.querySelectorAll('button:not(:disabled),input:not(:disabled)')??[]),index=options.indexOf(document.activeElement);
       if(index<0||(event.shiftKey&&index===0)||(!event.shiftKey&&index===options.length-1)){event.preventDefault();options[event.shiftKey?options.length-1:0]?.focus()}
       return true;
     }
+    if(event.target.closest?.('input,textarea'))return true;
     const number=Number(document.activeElement?.dataset.sector),step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-20,ArrowDown:20}[event.key];
     let target;
     if(step){event.preventDefault();for(let n=number+step;n>=1&&n<=200;n+=step)if(accessibleScenes.value.includes(n)){target=n;break}}
@@ -159,13 +160,12 @@ createApp({setup(){
     if(n===unlocked.value+1){unlocked.value=n;while(unlocked.value<200&&bonusScenes.value.includes(unlocked.value+1))unlocked.value++}
     else if(!bonusScenes.value.includes(n))bonusScenes.value=[...bonusScenes.value,n];
   }
-  function pauseForPassword(){if(['playing','entering','transition'].includes(mode.value)||(mode.value==='dead'&&!deathReady.value))togglePause()}
   function openPassword(){
     const found=findSectorPassword(passwordInput.value);
     if(!found){passwordMessage.value='password.invalid';return}
     bonusScenes.value=[...new Set([...bonusScenes.value,...Array.from({length:found.last-found.first+1},(_,i)=>found.first+i)])];
     passwordRange.value={first:String(found.first).padStart(3,'0'),last:String(found.last).padStart(3,'0')};
-    passwordMessage.value='password.opened';passwordInput.value='';chooseScene(found.first);
+    passwordMessage.value='password.opened';passwordInput.value='';save();
   }
   function reset({entering=false}={}){game=new Game(levels[scene.value-1],{entering});motion.reset(game);remaining.value=360;elapsed=0;deathElapsed=0;deathReady.value=false;ammo.value=0;held=null;release();paint()}
   function paint(){if(ctx&&game)render(ctx,game,t('game.sleepMarker'),{scene:scene.value,lives:lives.value,timeText:timeText.value,sectorLabel:t('game.scene'),timeLabel:t('game.time'),credit:t(retroModes.includes(graphics.value)?'game.originalCredit':'game.boardCredit')},transition,{mode:graphics.value,atlas:modernAtlas,motion,showDeadPlayer:!deathReady.value})}
@@ -277,5 +277,5 @@ createApp({setup(){
     }).catch(()=>{notice.value='notice.offlineFailed'});
   });
   onUnmounted(()=>{cancelAnimationFrame(timer);release();audio.close();document.body.classList.remove('game-expanded');window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('beforeinstallprompt',beforeInstall);window.removeEventListener('appinstalled',installed);document.removeEventListener('pointerdown',outsideControls);window.removeEventListener('resize',sizeExpanded);window.visualViewport?.removeEventListener('resize',sizeExpanded)});
-  return{sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordMessage,passwordRange,pauseForPassword,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
+  return{sectorMenuOpen,sectorTrigger,sectorGrid,sectorOverlay,toggleSectors,closeSectors,accessibleScenes,passwordInput,passwordMessage,passwordRange,openPassword,returnTitle,gameAspect,titleScreen,deathReady,graphics,graphicsModes,graphicsMenuOpen,graphicsPicker,graphicsMenuButton,graphicsReady,toggleGraphicsMenu,setGraphics,language,languages,setLanguage,t,plural,shortcutTitle,languageMenuOpen,languagePicker,languageMenuButton,toggleLanguageMenu,onPickerBlur,expanded,expandedWidth,toggleExpanded,transitionPhase,canvas,scene,unlocked,mode,lives,ammo,sound,audioAvailable,toggleSound,installPrompt,message,notice,version,timeText,start,resume,togglePause,restart,retry,next,chooseScene,fire,hold,release,install};
 }}).mount('#app');

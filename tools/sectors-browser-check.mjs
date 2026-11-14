@@ -45,7 +45,7 @@ try{
  assert.equal(await evaluate(`JSON.parse(localStorage.getItem('flappy-pmd85-progress-v1')).scene`),40);
  await key('KeyP','p');await open();await evaluate(`document.querySelector('.sector-close').click()`);assert.equal(await state(),'paused');
  await key('KeyF','f');await until(`document.querySelector('.application').classList.contains('expanded-mode')`);await open();
- await evaluate(`document.querySelector('.sector-close').focus()`);await key('Tab','Tab',{modifiers:8});assert.equal(await evaluate(`document.activeElement.dataset.sector`),'200');
+ await evaluate(`document.querySelector('.sector-close').focus()`);await key('Tab','Tab',{modifiers:8});assert.equal(await evaluate(`document.activeElement.className`),'password-submit');
  await key('Tab');assert.equal(await evaluate(`document.activeElement.className`),'sector-close');
  await key('Escape');assert.equal(await evaluate(`document.querySelector('.application').classList.contains('expanded-mode')`),true);
  await key('Escape');await until(`!document.querySelector('.application').classList.contains('expanded-mode')`);
@@ -60,7 +60,9 @@ try{
  const point=await evaluate(`(()=>{const r=document.querySelector('[data-sector="200"]').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);
  await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  await until(`document.querySelector('canvas').dataset.state==='playing'&&document.querySelector('.game-hud span:first-child b').textContent==='200'`);
- await evaluate(`navigator.serviceWorker.ready`);await until(`!!navigator.serviceWorker.controller`);
+ await evaluate(`navigator.serviceWorker.ready`);
+ if(!await evaluate(`!!navigator.serviceWorker.controller`)){await call('Page.reload');await delay(150);await until(`!!document.querySelector('.sector-toggle')&&!document.querySelector('#app').hasAttribute('v-cloak')`)}
+ await until(`!!navigator.serviceWorker.controller`);
  await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await call('Page.reload');await delay(150);await until(`document.querySelector('canvas')?.dataset.state==='ready'`);
  await open();assert.equal(await evaluate(`document.querySelector('[data-sector="200"]').disabled`),false);
  await evaluate(`document.querySelector('[data-sector="1"]').click()`);await until(`document.querySelector('canvas').dataset.state==='playing'`);
